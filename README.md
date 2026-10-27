@@ -83,3 +83,7 @@ v4 解读语料**只引用位置、作 prompt 参考**，不用断语软标签�
 
 本仓库 MIT；上游引擎 MIT；解读数据 CC BY 4.0；倪师原话非商用。详见 [NOTICE.md](NOTICE.md)。
 与上游差异见 [docs/vs-ziwei-doushu.md](docs/vs-ziwei-doushu.md)。
+## 样例输出（不想跑也能先看）
+
+见 [docs/examples/README.md](docs/examples/README.md)：
+问题「今年适合跳槽吗」的白话结论、四因子表、可粘贴提示包。
