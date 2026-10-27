@@ -11,7 +11,7 @@ MATTER_CATALOG: list[dict[str, Any]] = [
     {
         "id": "career",
         "label": "事业职场",
-        "keywords": ["事业", "工作", "职场", "升迁", "晋升", "跳槽", "面试", "创业", "官运", "职责", "老板"],
+        "keywords": ["事业", "工作", "职场", "升迁", "晋升", "跳槽", "换工作", "离职", "转行", "面试", "创业", "官运", "职责", "老板", "加薪", "升职", "考公", "编制"],
         "palaces": ["官禄", "仆役", "财帛", "迁移"],
         "focus_factors": ["F2_keystone", "F3_fragility", "F4_tempo"],
         "lens": "看舞台（官禄）谁在扛、同事借力是否稳，以及今年会不会换剧本。",
@@ -19,7 +19,7 @@ MATTER_CATALOG: list[dict[str, Any]] = [
     {
         "id": "money",
         "label": "钱财资源",
-        "keywords": ["钱", "财", "收入", "投资", "理财", "亏损", "回款", "开销", "工资", "副业"],
+        "keywords": ["钱", "财", "收入", "投资", "理财", "亏损", "回款", "开销", "工资", "副业", "借钱", "贷款", "存款", "买房首付", "周转"],
         "palaces": ["财帛", "田宅", "官禄", "福德"],
         "focus_factors": ["F2_keystone", "F3_fragility"],
         "lens": "看进账与留存的房间，谁在扛钱粮，哪里忌压偏高要留缓冲。",
@@ -27,7 +27,7 @@ MATTER_CATALOG: list[dict[str, Any]] = [
     {
         "id": "relationship",
         "label": "亲密关系",
-        "keywords": ["感情", "恋爱", "相亲", "结婚", "婚姻", "分手", "复合", "配偶", "伴侣", "桃花"],
+        "keywords": ["感情", "恋爱", "相亲", "结婚", "婚姻", "分手", "复合", "配偶", "伴侣", "桃花", "暧昧", "前任", "喜欢我", "在一起"],
         "palaces": ["夫妻", "福德", "迁移", "交友"],
         "focus_factors": ["F1_community", "F3_fragility", "F4_tempo"],
         "lens": "看亲密宫与共同体感：连得上还是拉锯，忌压落在哪一侧。",
@@ -35,7 +35,7 @@ MATTER_CATALOG: list[dict[str, Any]] = [
     {
         "id": "health",
         "label": "身体消耗",
-        "keywords": ["健康", "身体", "生病", "疲劳", "失眠", "手术", "养生", "疾厄"],
+        "keywords": ["健康", "身体", "生病", "疲劳", "失眠", "手术", "养生", "疾厄", "体检", "住院", "看病", "复查"],
         "palaces": ["疾厄", "福德", "父母"],
         "focus_factors": ["F3_fragility", "F2_keystone"],
         "lens": "把疾厄当消耗账本：忌压与承重是否叠在同一处。",
@@ -43,7 +43,7 @@ MATTER_CATALOG: list[dict[str, Any]] = [
     {
         "id": "home",
         "label": "安家置业",
-        "keywords": ["房子", "购房", "租房", "搬家", "装修", "家", "房产", "安家", "田宅"],
+        "keywords": ["房子", "购房", "租房", "搬家", "装修", "房产", "安家", "田宅", "换房", "买房", "置业", "住房", "房贷", "定居"],
         "palaces": ["田宅", "财帛", "迁移", "父母"],
         "focus_factors": ["F3_fragility", "F4_tempo", "F2_keystone"],
         "lens": "看安顿与变动是否撞车：田宅稳不稳、迁移会不会掀桌。",
@@ -51,7 +51,7 @@ MATTER_CATALOG: list[dict[str, Any]] = [
     {
         "id": "travel",
         "label": "外出变动",
-        "keywords": ["出行", "出差", "旅行", "留学", "移民", "外派", "远行", "变动"],
+        "keywords": ["出行", "出差", "旅行", "留学", "移民", "外派", "远行", "变动", "出国", "调岗", "外派", "换城市"],
         "palaces": ["迁移", "交友", "官禄", "疾厄"],
         "focus_factors": ["F4_tempo", "F1_community", "F3_fragility"],
         "lens": "看对外场面与节律窗口：是深耕本地，还是适合换环境。",
@@ -59,7 +59,7 @@ MATTER_CATALOG: list[dict[str, Any]] = [
     {
         "id": "collaboration",
         "label": "合作共事",
-        "keywords": ["合作", "合伙", "同事", "团队", "下属", "朋友", "人脉", "贵人", "借力"],
+        "keywords": ["合作", "合伙", "同事", "团队", "下属", "朋友", "人脉", "贵人", "借力", "一起做事", "组团队"],
         "palaces": ["交友", "仆役", "官禄", "夫妻"],
         "focus_factors": ["F1_community", "F2_keystone", "F3_fragility"],
         "lens": "看共同体感与借力宫：互助台阶多，还是忌刺多。",
@@ -67,7 +67,7 @@ MATTER_CATALOG: list[dict[str, Any]] = [
     {
         "id": "exam",
         "label": "考试文书",
-        "keywords": ["考试", "升学", "考研", "考证", "文书", "合同", "诉讼", "答辩", "论文"],
+        "keywords": ["考试", "升学", "考研", "考证", "文书", "合同", "诉讼", "答辩", "论文", "面试", "录取", "申请"],
         "palaces": ["父母", "官禄", "疾厄", "交友"],
         "focus_factors": ["F2_keystone", "F3_fragility", "F4_tempo"],
         "lens": "看规矩来源与舞台压力：承重是否够、忌压会不会搅节奏。",
@@ -75,7 +75,7 @@ MATTER_CATALOG: list[dict[str, Any]] = [
     {
         "id": "family",
         "label": "长辈晚辈",
-        "keywords": ["父母", "长辈", "孩子", "子女", "生育", "家庭矛盾", "家事"],
+        "keywords": ["父母", "长辈", "孩子", "子女", "生育", "家庭矛盾", "家事", "婆媳", "带娃", "养家"],
         "palaces": ["父母", "子女", "田宅", "兄弟"],
         "focus_factors": ["F1_community", "F3_fragility"],
         "lens": "六亲仅作参考受限：只标张力方向与可觉察点，不作判决。",

@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: F1 回归（高协作 > 样本 > 低协作）
+        run: python scripts/test-f1-regression.py
+      - name: 端到端：问事 -> 提示包
+        run: |
+          python scripts/ask.py --demo --matter "今年适合跳槽吗"
+          python scripts/ask.py --chart fixtures/sample-chart.json --matter "这段感情能长久吗" --print-only
+      - name: 白话与提示包冒烟
+        run: python scripts/smoke.py
