@@ -1,0 +1,4 @@
+# 本项目核心功能仅需 Python 3.9+ 标准库。
+# 若启用 xerj / zvec 检索，再按需安装：
+#   pip install xerj
+# zvec 请按其官方文档单独安装。

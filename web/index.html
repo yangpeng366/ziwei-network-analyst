@@ -171,6 +171,50 @@
     .plain-item b { display: inline-block; min-width: 4.5em; color: #2f4f3f; }
     .plain-next { margin: 8px 0 0 1.2em; color: var(--muted); }
     .plain-next li { margin: 4px 0; }
+    .matter-box {
+      margin: 0 0 12px;
+      padding: 12px;
+      border: 1px solid #d9c9a8;
+      border-radius: 8px;
+      background: #fbf5e8;
+    }
+    .matter-box h2 { margin: 0 0 8px; color: #6d4a12; }
+    .matter-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #6d4a12;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+    .matter-palaces { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+    .prompt-box {
+      margin: 0 0 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .prompt-box h2 { margin: 0 0 8px; }
+    .prompt-text {
+      width: 100%;
+      min-height: 180px;
+      font: 12px/1.5 ui-monospace, Consolas, monospace;
+      white-space: pre;
+      overflow: auto;
+    }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-row button { width: auto; flex: 0 0 auto; margin-top: 8px; }
+    .chip {
+      display: inline-block;
+      padding: 3px 8px;
+      margin: 0 6px 6px 0;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      background: #fff;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
   </style>
 </head>
 <body>
@@ -194,6 +238,12 @@
         <select id="fixture"></select>
         <label for="asOf1">流年（可选）</label>
         <input id="asOf1" type="number" placeholder="如 2025" />
+        <label for="matter1">想问的事（可选）</label>
+        <input id="matter1" type="text" placeholder="如 今年适合跳槽吗" />
+        <div class="chip" data-matter="今年适合跳槽吗">跳槽</div>
+        <div class="chip" data-matter="这段感情能长久吗">感情</div>
+        <div class="chip" data-matter="今年身体要注意什么">身体</div>
+        <div class="chip" data-matter="什么时候适合换房">换房</div>
         <button id="run-fixture" type="button">分析这张盘</button>
       </section>
 
@@ -236,6 +286,8 @@
             <input id="asOf2" type="number" placeholder="如 2025" />
           </div>
         </div>
+        <label for="matter2">想问的事（可选）</label>
+        <input id="matter2" type="text" placeholder="如 今年适合跳槽吗" />
         <button id="run-birth" type="button">排盘并分析</button>
         <p class="hint">时辰用地支序号：子=0 … 亥=11。不自己算盘。</p>
       </section>
@@ -252,7 +304,23 @@
           <ol id="plain-next" class="plain-next"></ol>
           <p id="plain-disc" class="hint"></p>
         </div>
+        <div id="matter-box" class="matter-box hidden">
+          <h2>你这件事的聚焦</h2>
+          <div><span class="matter-label" id="matter-title"></span></div>
+          <p id="matter-plain"></p>
+          <p class="matter-palaces" id="matter-palaces"></p>
+          <ol id="matter-actions" class="plain-next"></ol>
+        </div>
         <div class="factors" id="factors"></div>
+        <div class="prompt-box">
+          <h2>拿去问任意 AI</h2>
+          <p class="hint" style="margin:0 0 8px">无需本地大模型。复制下面整段，粘到任意 AI 即可得到白话解读。</p>
+          <textarea id="prompt-text" class="prompt-text" readonly placeholder="分析后这里会生成可粘贴的提示词…"></textarea>
+          <div class="btn-row">
+            <button id="copy-prompt" type="button" class="secondary">复制提示词</button>
+            <button id="copy-plain" type="button" class="secondary">只复制白话结论</button>
+          </div>
+        </div>
         <div class="grid2">
           <div>
             <h2>承重星 Top</h2>
@@ -285,7 +353,9 @@
       $("run-birth").disabled = busy;
     };
 
+    let lastPayload = null;
     function render(payload) {
+      lastPayload = payload;
       const f = payload.factors.factors;
       $("one-liner").textContent = payload.factors.one_liner || "";
       const plain = payload.plain || {};
@@ -320,6 +390,21 @@
           <div class="bar"><span style="width:${pct}%"></span></div>
         </div>`;
       }).join("");
+
+      const m = payload.matter || {};
+      const box = $("matter-box");
+      if (m.plain) {
+        box.classList.remove("hidden");
+        $("matter-title").textContent = "「" + ((m.focus && m.focus.label) || "整体态势") + "」";
+        $("matter-plain").textContent = m.plain;
+        const pal = (m.focus && m.focus.palaces) || [];
+        $("matter-palaces").textContent = pal.length ? "相关宫位：" + pal.join("、") : "";
+        $("matter-actions").innerHTML = (m.actions || []).map(x => `<li>${x}</li>`).join("");
+      } else {
+        box.classList.add("hidden");
+      }
+      const pp = payload.prompt_pack || {};
+      $("prompt-text").value = pp.combined_markdown || pp.user || "";
 
       const ks = (payload.metrics && payload.metrics.keystones) || [];
       $("keystones").innerHTML = ks.slice(0,5).map(x =>
@@ -370,6 +455,8 @@
         const asOf = $("asOf1").value;
         const q = new URLSearchParams({ id });
         if (asOf) q.set("asOfYear", asOf);
+        const mt = $("matter1").value.trim();
+        if (mt) q.set("matter", mt);
         const res = await fetch("/api/analyze?" + q.toString());
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "failed");
@@ -391,6 +478,7 @@
           gender: $("gender").value,
           age: $("age").value === "" ? null : Number($("age").value),
           asOfYear: $("asOf2").value === "" ? null : Number($("asOf2").value),
+          matter: $("matter2").value.trim() || null,
         };
         const res = await fetch("/api/analyze-birth", {
           method: "POST",
@@ -404,6 +492,35 @@
       } catch (e) {
         status(String(e.message || e), true);
       } finally { setBusy(false); }
+    };
+
+    document.querySelectorAll(".chip").forEach(c => {
+      c.onclick = () => {
+        const val = c.getAttribute("data-matter") || "";
+        $("matter1").value = val;
+        $("matter2").value = val;
+      };
+    });
+
+    async function copyText(txt, btn) {
+      try {
+        await navigator.clipboard.writeText(txt);
+        const old = btn.textContent;
+        btn.textContent = "已复制";
+        setTimeout(() => { btn.textContent = old; }, 1200);
+      } catch (e) {
+        status("复制失败，请手动选中复制", true);
+      }
+    }
+    $("copy-prompt").onclick = () => copyText($("prompt-text").value, $("copy-prompt"));
+    $("copy-plain").onclick = () => {
+      const m = (lastPayload && lastPayload.matter) || {};
+      const parts = [];
+      if (m.plain) parts.push(m.plain);
+      const pf = (lastPayload && lastPayload.plain && lastPayload.plain.factors_plain) || {};
+      Object.keys(pf).forEach(k => parts.push(pf[k]));
+      if ((lastPayload && lastPayload.plain && lastPayload.plain.summary)) parts.push(lastPayload.plain.summary);
+      copyText(parts.join("\n\n"), $("copy-plain"));
     };
 
     loadFixtures().then(() => status("就绪")).catch(e => status(String(e), true));

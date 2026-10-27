@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -11,18 +12,19 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-ROOT_BOOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT_BOOT / "packages"))
-from plain_reading.explain import explain_payload  # noqa: E402
-
 ROOT = Path(__file__).resolve().parents[1]
 WEB = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT / "packages"))
+from plain_reading.explain import explain_payload  # noqa: E402
+from matter_query.map import explain_matter  # noqa: E402
+from matter_query.prompt_pack import build_system_prompt, build_user_prompt  # noqa: E402
+
 CONV = ROOT / "packages" / "hypergraph" / "chart2hypergraph.py"
-ENGINE = Path(__import__("os").environ.get("ZIWEI_ENGINE_ROOT", r"F:\github\ziwei-doushu"))
+ENGINE = Path(os.environ.get("ZIWEI_ENGINE_ROOT", r"F:\github\ziwei-doushu"))
 GEN = ENGINE / "scripts" / "gen-one-for-ui.ts"
 FIXTURES = ROOT / "fixtures"
 HOST = "127.0.0.1"
-PORT = 8765
+PORT = int(os.environ.get("ZIWEI_DEMO_PORT", "8765"))
 
 
 def list_fixtures() -> list[dict]:
@@ -41,21 +43,40 @@ def list_fixtures() -> list[dict]:
     return items
 
 
-def analyze_chart_file(chart_path: Path, as_of_year: int | None = None) -> dict:
+def enrich(payload: dict, matter: str | None = None) -> dict:
+    payload["plain"] = explain_payload(payload)
+    payload["matter"] = explain_matter(payload, matter)
+    system_prompt = build_system_prompt()
+    user_prompt = build_user_prompt(payload, matter)
+    payload["prompt_pack"] = {
+        "system": system_prompt,
+        "user": user_prompt,
+        "mode": "paste-to-any-ai",
+        "combined_markdown": (
+            "# 可粘贴给任意 AI 的提示包\n\n"
+            "## System\n\n"
+            f"{system_prompt}\n"
+            "## User\n\n"
+            f"{user_prompt}"
+        ),
+    }
+    return payload
+
+
+def analyze_chart_file(chart_path: Path, as_of_year: int | None = None, matter: str | None = None) -> dict:
     chart = json.loads(chart_path.read_text(encoding="utf-8"))
     if as_of_year is not None:
         chart["asOfYear"] = int(as_of_year)
     with tempfile.TemporaryDirectory() as td:
         tmp = Path(td) / "chart.json"
         tmp.write_text(json.dumps(chart, ensure_ascii=False), encoding="utf-8")
-        subprocess.check_call([sys.executable, str(CONV), str(tmp)], cwd=str(ROOT), stdout=subprocess.DEVNULL)
+        subprocess.check_call([sys.executable, str(CONV), str(tmp), "--no-prompt"], cwd=str(ROOT), stdout=subprocess.DEVNULL)
         payload = json.loads((tmp.with_name("chart.hypergraph.json")).read_text(encoding="utf-8"))
     payload["source"] = {"kind": "fixture", "path": str(chart_path)}
-    payload["plain"] = explain_payload(payload)
-    return payload
+    return enrich(payload, matter)
 
 
-def analyze_birth(y: int, m: int, d: int, h: int, gender: str, age: int | None, as_of_year: int | None) -> dict:
+def analyze_birth(y: int, m: int, d: int, h: int, gender: str, age: int | None, as_of_year: int | None, matter: str | None = None) -> dict:
     tsx_cmd = ENGINE / "node_modules" / ".bin" / ("tsx.cmd" if sys.platform.startswith("win") else "tsx")
     if tsx_cmd.exists():
         cmd = [str(tsx_cmd), str(GEN), str(y), str(m), str(d), str(h), gender]
@@ -83,7 +104,7 @@ def analyze_birth(y: int, m: int, d: int, h: int, gender: str, age: int | None, 
     with tempfile.TemporaryDirectory() as td:
         tmp = Path(td) / "chart.json"
         tmp.write_text(json.dumps(chart, ensure_ascii=False), encoding="utf-8")
-        subprocess.check_call([sys.executable, str(CONV), str(tmp)], cwd=str(ROOT), stdout=subprocess.DEVNULL)
+        subprocess.check_call([sys.executable, str(CONV), str(tmp), "--no-prompt"], cwd=str(ROOT), stdout=subprocess.DEVNULL)
         payload = json.loads((tmp.with_name("chart.hypergraph.json")).read_text(encoding="utf-8"))
     payload["source"] = {
         "kind": "birth",
@@ -95,8 +116,7 @@ def analyze_birth(y: int, m: int, d: int, h: int, gender: str, age: int | None, 
         "age": age,
         "asOfYear": as_of_year,
     }
-    payload["plain"] = explain_payload(payload)
-    return payload
+    return enrich(payload, matter)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -122,7 +142,15 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, html, "text/html; charset=utf-8")
             return
         if u.path == "/api/health":
-            self._json(200, {"ok": True, "engine": ENGINE.exists(), "conv": CONV.exists()})
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "engine": ENGINE.exists(),
+                    "conv": CONV.exists(),
+                    "engine_root": str(ENGINE),
+                },
+            )
             return
         if u.path == "/api/fixtures":
             self._json(200, {"items": list_fixtures()})
@@ -131,13 +159,14 @@ class Handler(BaseHTTPRequestHandler):
             qs = parse_qs(u.query)
             fid = (qs.get("id") or [None])[0]
             as_of = (qs.get("asOfYear") or [None])[0]
+            matter = (qs.get("matter") or [""])[0].strip() or None
             as_of_i = int(as_of) if as_of not in (None, "") else None
             items = {x["id"]: x for x in list_fixtures()}
             if not fid or fid not in items:
                 self._json(400, {"error": "unknown fixture id"})
                 return
             try:
-                payload = analyze_chart_file(Path(items[fid]["path"]), as_of_i)
+                payload = analyze_chart_file(Path(items[fid]["path"]), as_of_i, matter)
                 self._json(200, payload)
             except Exception as e:
                 self._json(500, {"error": str(e)})
@@ -162,7 +191,8 @@ class Handler(BaseHTTPRequestHandler):
             age_i = int(age) if age not in (None, "") else None
             as_of = body.get("asOfYear")
             as_of_i = int(as_of) if as_of not in (None, "") else None
-            payload = analyze_birth(y, m, d, h, gender, age_i, as_of_i)
+            matter = str(body.get("matter") or "").strip() or None
+            payload = analyze_birth(y, m, d, h, gender, age_i, as_of_i, matter)
             self._json(200, payload)
         except Exception as e:
             self._json(500, {"error": str(e)})

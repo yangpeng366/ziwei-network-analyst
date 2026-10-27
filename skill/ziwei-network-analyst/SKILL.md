@@ -18,13 +18,19 @@ description: 用四核心因素解释紫微命盘（共同体感/承重星/冲�
 3. F3 冲击脆弱（活跃层：本命+当前大限+流年）
 4. F4 节律窗口（大限边界，不依赖已下线的 daXian.siHua）
 
+## 仓库位置
+
+默认 `F:\github\ziwei-network-analyst`；若不存在，先找：
+- 环境变量 `ZIWEI_REPO`
+- `C:\Users\<you>\.codex-home\skills\ziwei-network-analyst` 上级即本仓副本
+
 ## 工作流
 
 1. 收生辰 / 读 chart.json（禁止手算排盘）
 2. 跑转换（有具体事就带 `--matter`）：
 
 ```powershell
-python F:\github\ziwei-network-analyst\packages\hypergraph\chart2hypergraph.py <chart.json> --matter "今年适合跳槽吗"
+python <repo>/packages/hypergraph/chart2hypergraph.py <chart.json> --matter "今年适合跳槽吗"
 ```
 
 3. 读输出 JSON：
@@ -42,7 +48,7 @@ python F:\github\ziwei-network-analyst\packages\hypergraph\chart2hypergraph.py <
 
 改因子权重前先跑：
 
-- `python F:\github\ziwei-network-analyst\scripts\test-f1-regression.py`
+- `python <repo>/scripts/test-f1-regression.py`
 
 ## 白话 / 事项 / 提示包从哪来
 
