@@ -138,6 +138,10 @@ def year_factors(chart: dict[str, Any], year: int) -> dict[str, Any]:
         "F4_reading": (f.get("F4_tempo") or {}).get("reading"),
         "phase_proximity": metrics.get("phase_proximity"),
         "top_keystone": (metrics.get("keystones") or [{}])[0].get("name") if metrics.get("keystones") else None,
+        "keystones": [
+            {"name": k.get("name"), "palace": k.get("palace"), "score": k.get("score")}
+            for k in (metrics.get("keystones") or [])[:4]
+        ],
         "ji_hotspots": [
             {"palace": r.get("palace"), "ji_pressure": r.get("ji_pressure")}
             for r in (metrics.get("ji_fragility") or [])[:3]

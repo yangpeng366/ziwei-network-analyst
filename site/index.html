@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>紫微四因子 · 静态演示</title>
+  <meta name="description" content="紫微命盘压成四个因子，白话解读 + 具体事项聚焦 + 逐年宜动宜守曲线。" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header>
+  <div>
+    <h1>紫微四因子 · 静态演示</h1>
+    <p>把一张命盘压成 4 个因子，用白话讲清，并针对你问的那件具体事给方向。数据已预计算，打开即用，无需安装引擎。</p>
+  </div>
+  <div class="hint">排盘由 ziwei-doushu 引擎负责 · 本页只做解释<br />仅供自我觉察，非命运断言</div>
+</header>
+
+<div class="wrap">
+<main>
+  <aside>
+    <div class="panel">
+      <h2>选盘</h2>
+      <label for="chart">演示盘</label>
+      <select id="chart"></select>
+
+      <label for="matter">想问的事</label>
+      <input id="matter" type="text" placeholder="如 今年适合跳槽吗" />
+      <div class="chips" id="chips"></div>
+
+      <div class="row">
+        <div>
+          <label for="yfrom">推演起始年</label>
+          <input id="yfrom" type="number" />
+        </div>
+        <div>
+          <label for="yto">推演结束年</label>
+          <input id="yto" type="number" />
+        </div>
+      </div>
+      <p class="hint">换年份区间会同时改变曲线、宜动/宜守标注与提示词内容。</p>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="panel">
+      <h2>四个因子</h2>
+      <div class="factors" id="factors"></div>
+    </div>
+  </aside>
+
+  <section>
+    <div class="panel">
+      <div id="one-liner" class="one-liner">加载中…</div>
+
+      <div class="matter">
+        <h2>你这件事的聚焦</h2>
+        <div><span class="matter-label" id="matter-label"></span></div>
+        <p id="matter-plain" style="margin:4px 0 0"></p>
+        <p class="hint" id="matter-palaces" style="margin:6px 0 0"></p>
+        <ol id="matter-actions"></ol>
+      </div>
+
+      <div class="plain">
+        <h2>白话解读</h2>
+        <p class="plain-summary" id="plain-summary"></p>
+        <div id="plain-factors"></div>
+        <ol id="plain-next" class="hint" style="margin:8px 0 0 1.2em"></ol>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <h2>承重星 Top</h2>
+          <table><thead><tr><th>星</th><th>宫</th><th>分</th></tr></thead><tbody id="keystones"></tbody></table>
+        </div>
+        <div>
+          <h2>忌压热区</h2>
+          <table><thead><tr><th>宫</th><th>压力</th></tr></thead><tbody id="frags"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>逐年曲线：哪几年该动，哪几年宜守</h2>
+      <p class="hint" id="tl-summary" style="margin:0 0 8px"></p>
+      <div class="curve" id="curve"></div>
+      <div class="tags" id="tags"></div>
+      <div class="scroll" style="margin-top:10px">
+        <table>
+          <thead><tr><th>年</th><th>虚岁</th><th>大限</th><th>脆弱</th><th>节律</th><th>忌压首位</th></tr></thead>
+          <tbody id="tl-rows"></tbody>
+        </table>
+      </div>
+      <p class="hint">★ 宜动窗口（贴近大限交接）　! 冲击吃紧　流年只改当下张力，不改你是谁。</p>
+    </div>
+
+    <div class="panel">
+      <h2>拿去问任意 AI</h2>
+      <p class="hint" style="margin:0 0 8px">本页不含大模型。复制下面整段，粘到任意 AI 即可得到通顺解读；AI 不得改分数、不得重排盘。</p>
+      <textarea id="prompt" class="prompt" readonly></textarea>
+      <div class="btnrow">
+        <button id="copy" type="button" class="secondary">复制提示词</button>
+        <button id="copy-plain" type="button" class="secondary">只复制白话结论</button>
+      </div>
+    </div>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p>
+    解释层开源项目：
+    <a href="https://github.com/yangpeng366/ziwei-network-analyst">github.com/yangpeng366/ziwei-network-analyst</a>
+    ｜排盘引擎：
+    <a href="https://github.com/Renhuai123/ziwei-doushu">Renhuai123/ziwei-doushu</a>
+    ｜本仓 MIT；解读语料 CC BY 4.0；倪师原话非商用。
+  </p>
+  <p>边界：不替代排盘；不做绝对吉凶断言；事项聚焦 = 给相关宫位打光，不是传统占卜判决；六亲 / 婚恋 / 健康参考受限。</p>
+</footer>
+
+<script src="data/charts.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
