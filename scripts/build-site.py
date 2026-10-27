@@ -13,7 +13,7 @@ from plain_reading.explain import explain_payload  # noqa: E402
 from matter_query.map import MATTER_CATALOG  # noqa: E402
 from timeline.sweep import sweep_payload  # noqa: E402
 
-OUT = ROOT / "site" / "data" / "charts.js"
+OUT = ROOT / "docs" / "data" / "charts.js"
 
 # 演示盘列表：样例盘 + 两个真实 1990 生盘
 CHARTS = [

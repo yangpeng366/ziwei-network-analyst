@@ -32,6 +32,6 @@ jobs:
       - name: 生成静态站数据
         run: python scripts/build-site.py
       - name: 静态站数据未漂移
-        run: git diff --exit-code site/data/charts.js
+        run: git diff --exit-code docs/data/charts.js
       - name: 白话与提示包冒烟
         run: python scripts/smoke.py
