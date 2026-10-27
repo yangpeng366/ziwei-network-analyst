@@ -677,7 +677,18 @@ def to_mermaid(hg: dict[str, Any], metrics: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+
+
+def _force_utf8_stdout() -> None:
+    """Windows CI 控制台默认非 UTF-8，中文输出会抛 UnicodeEncodeError。"""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 def main() -> int:
+    _force_utf8_stdout()
     ap = argparse.ArgumentParser(description="Convert ZiweiChart JSON to temporal hypergraph")
     ap.add_argument("chart_json", type=Path)
     ap.add_argument("-o", "--out", type=Path, default=None, help="output hypergraph json")

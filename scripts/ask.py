@@ -67,7 +67,16 @@ def parse_birth(spec: str) -> tuple[int, int, int, int, str, int | None]:
     return y, m, d, h, gender, age
 
 
+def _force_utf8_stdout() -> None:
+    """Windows CI 控制台默认非 UTF-8，中文输出会抛 UnicodeEncodeError。"""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 def main() -> int:
+    _force_utf8_stdout()
     ap = argparse.ArgumentParser(description="问事：生成可粘贴给任意 AI 的提示包")
     src = ap.add_mutually_exclusive_group(required=True)
     src.add_argument("--birth", help="生辰 YYYY-MM-DD-H-gender[-age]")

@@ -27,7 +27,16 @@ CASES = [
 ]
 
 
+def _force_utf8_stdout() -> None:
+    """Windows CI 控制台默认非 UTF-8，中文输出会抛 UnicodeEncodeError。"""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 def main() -> int:
+    _force_utf8_stdout()
     if not CHART.exists():
         print("缺少 fixtures/sample-chart.json"); return 1
     with tempfile.TemporaryDirectory() as td:
