@@ -14,7 +14,7 @@ work/
 *.hypergraph.prompt.md
 progress/
 fixtures/real-1990/
-data/
+/data/
 
 
 out/
