@@ -1,0 +1,6 @@
+interface:
+  display_name: "紫微网络分析"
+  short_description: "命盘→超图→韧性/相变推演"
+  default_prompt: "用 ziwei-network-analyst 分析这张命盘：先排盘或读 chart.json，再转超图并给出韧性与大限情景（非命运断言）"
+policy:
+  allow_implicit_invocation: true

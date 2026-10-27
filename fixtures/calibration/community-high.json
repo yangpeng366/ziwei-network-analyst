@@ -1,0 +1,338 @@
+{
+  "birthInfo": {
+    "year": 1990,
+    "month": 5,
+    "day": 15,
+    "hour": 4,
+    "gender": "male",
+    "name": "fixture-demo",
+    "city": "成都",
+    "longitude": 104.06,
+    "note": "calibration:high-community"
+  },
+  "lunarInfo": {
+    "lunarYear": 1990,
+    "lunarMonth": 4,
+    "lunarDay": 21,
+    "yearStem": 6,
+    "yearBranch": 6,
+    "isLeapMonth": false,
+    "fourPillars": [
+      "庚午",
+      "辛巳",
+      "戊辰",
+      "丙巳"
+    ]
+  },
+  "mingGongBranch": 11,
+  "shenGongBranch": 8,
+  "wuxingJu": 4,
+  "wuxingJuName": "火四局",
+  "ziweiPos": 6,
+  "mingZhu": "贪狼",
+  "shenZhu": "天相",
+  "yinYangGender": "阳男",
+  "currentAge": 36,
+  "currentDaXianIndex": 2,
+  "palaces": [
+    {
+      "branch": 0,
+      "stem": 0,
+      "name": "父母",
+      "stars": [
+        {
+          "name": "天梁",
+          "type": "major",
+          "brightnessRaw": "庙"
+        },
+        {
+          "name": "文昌",
+          "type": "lucky",
+          "siHua": "科",
+          "brightnessRaw": "旺"
+        }
+      ],
+      "oppositeBranch": 6,
+      "isEmpty": false,
+      "isMingGong": false
+    },
+    {
+      "branch": 1,
+      "stem": 1,
+      "name": "福德",
+      "stars": [
+        {
+          "name": "天机",
+          "type": "major",
+          "brightnessRaw": "旺"
+        },
+        {
+          "name": "天钺",
+          "type": "lucky",
+          "brightnessRaw": "得"
+        }
+      ],
+      "oppositeBranch": 7,
+      "isEmpty": false,
+      "isMingGong": false
+    },
+    {
+      "branch": 2,
+      "stem": 2,
+      "name": "田宅",
+      "stars": [
+        {
+          "name": "紫微",
+          "type": "major",
+          "brightnessRaw": "庙"
+        },
+        {
+          "name": "天府",
+          "type": "major",
+          "brightnessRaw": "庙"
+        }
+      ],
+      "isMingGong": false,
+      "oppositeBranch": 8,
+      "isEmpty": false,
+      "selfSihua": [
+        {
+          "siHua": "禄",
+          "starName": "紫微"
+        }
+      ]
+    },
+    {
+      "branch": 3,
+      "stem": 3,
+      "name": "官禄",
+      "stars": [
+        {
+          "name": "武曲",
+          "type": "major",
+          "siHua": "权",
+          "brightnessRaw": "旺"
+        },
+        {
+          "name": "七杀",
+          "type": "major",
+          "brightnessRaw": "庙"
+        }
+      ],
+      "oppositeBranch": 9,
+      "isEmpty": false,
+      "isMingGong": false
+    },
+    {
+      "branch": 4,
+      "stem": 4,
+      "name": "交友",
+      "stars": [
+        {
+          "name": "贪狼",
+          "type": "major",
+          "brightnessRaw": "平",
+          "siHua": "禄"
+        }
+      ],
+      "oppositeBranch": 10,
+      "isEmpty": false,
+      "isMingGong": false,
+      "selfSihua": []
+    },
+    {
+      "branch": 5,
+      "stem": 5,
+      "name": "迁移",
+      "stars": [
+        {
+          "name": "廉贞",
+          "type": "major",
+          "siHua": null,
+          "brightnessRaw": "陷"
+        },
+        {
+          "name": "破军",
+          "type": "major",
+          "brightnessRaw": "旺",
+          "siHua": "权"
+        }
+      ],
+      "oppositeBranch": 11,
+      "isEmpty": false,
+      "isMingGong": false,
+      "selfSihua": []
+    },
+    {
+      "branch": 6,
+      "stem": 6,
+      "name": "疾厄",
+      "stars": [
+        {
+          "name": "太阳",
+          "type": "major",
+          "brightnessRaw": "得",
+          "siHua": "忌"
+        }
+      ],
+      "oppositeBranch": 0,
+      "isEmpty": false,
+      "isMingGong": false
+    },
+    {
+      "branch": 7,
+      "stem": 7,
+      "name": "财帛",
+      "stars": [
+        {
+          "name": "太阴",
+          "type": "major",
+          "siHua": "禄",
+          "brightnessRaw": "庙"
+        },
+        {
+          "name": "天同",
+          "type": "major",
+          "brightnessRaw": "旺"
+        }
+      ],
+      "oppositeBranch": 1,
+      "isEmpty": false,
+      "isMingGong": false
+    },
+    {
+      "branch": 8,
+      "stem": 8,
+      "name": "子女",
+      "stars": [],
+      "isShenGong": true,
+      "oppositeBranch": 2,
+      "isEmpty": true,
+      "borrowedFromBranch": 2,
+      "borrowedFromName": "田宅",
+      "borrowedStars": [
+        "紫微",
+        "天府"
+      ],
+      "isMingGong": false
+    },
+    {
+      "branch": 9,
+      "stem": 9,
+      "name": "夫妻",
+      "stars": [
+        {
+          "name": "巨门",
+          "type": "major",
+          "brightnessRaw": "旺",
+          "siHua": "科"
+        }
+      ],
+      "oppositeBranch": 3,
+      "isEmpty": false,
+      "isMingGong": false,
+      "selfSihua": []
+    },
+    {
+      "branch": 10,
+      "stem": 10,
+      "name": "兄弟",
+      "stars": [
+        {
+          "name": "天相",
+          "type": "major",
+          "brightnessRaw": "庙"
+        }
+      ],
+      "oppositeBranch": 4,
+      "isEmpty": false,
+      "isMingGong": false
+    },
+    {
+      "branch": 11,
+      "stem": 11,
+      "name": "命宫",
+      "stars": [
+        {
+          "name": "天机",
+          "type": "major",
+          "brightnessRaw": "庙"
+        },
+        {
+          "name": "文曲",
+          "type": "lucky",
+          "brightnessRaw": "旺"
+        }
+      ],
+      "isMingGong": true,
+      "oppositeBranch": 5,
+      "isEmpty": false
+    }
+  ],
+  "daXians": [
+    {
+      "startAge": 4,
+      "endAge": 13,
+      "palaceBranch": 11,
+      "palaceName": "命宫",
+      "stemIndex": 0,
+      "stemName": "甲",
+      "siHua": {
+        "stemIndex": 0,
+        "stemName": "甲",
+        "lu": "廉贞",
+        "quan": "破军",
+        "ke": "武曲",
+        "ji": "太阳"
+      }
+    },
+    {
+      "startAge": 14,
+      "endAge": 23,
+      "palaceBranch": 0,
+      "palaceName": "父母",
+      "stemIndex": 1,
+      "stemName": "乙",
+      "siHua": {
+        "stemIndex": 1,
+        "stemName": "乙",
+        "lu": "天机",
+        "quan": "天梁",
+        "ke": "紫微",
+        "ji": "太阴"
+      }
+    },
+    {
+      "startAge": 24,
+      "endAge": 33,
+      "palaceBranch": 1,
+      "palaceName": "福德",
+      "stemIndex": 2,
+      "stemName": "丙",
+      "siHua": {
+        "stemIndex": 2,
+        "stemName": "丙",
+        "lu": "天同",
+        "quan": "天机",
+        "ke": "文昌",
+        "ji": "廉贞"
+      }
+    },
+    {
+      "startAge": 34,
+      "endAge": 43,
+      "palaceBranch": 2,
+      "palaceName": "田宅",
+      "stemIndex": 3,
+      "stemName": "丁",
+      "siHua": {
+        "stemIndex": 3,
+        "stemName": "丁",
+        "lu": "太阴",
+        "quan": "天同",
+        "ke": "天机",
+        "ji": "巨门"
+      }
+    }
+  ]
+}

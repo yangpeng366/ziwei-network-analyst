@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>紫微四因子试玩</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --panel: #fffdf8;
+      --ink: #1f2430;
+      --muted: #5c6575;
+      --line: #d7d0c4;
+      --accent: #0f6a5a;
+      --warn: #9a4d1c;
+      --cool: #245b8a;
+      --bad: #8a2f3b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font: 14px/1.45 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #efe8dc;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+      font-weight: 700;
+    }
+    header p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    main {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 14px;
+      padding: 14px;
+      min-height: calc(100vh - 64px);
+    }
+    @media (max-width: 960px) {
+      main { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      text-transform: none;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+    input, select, button, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font: inherit;
+      background: #fff;
+      color: var(--ink);
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    button {
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      border-color: #0c574a;
+      font-weight: 650;
+      margin-top: 10px;
+    }
+    button.secondary {
+      background: #fff;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+    button:disabled { opacity: 0.55; cursor: wait; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+    .tabs button { margin: 0; flex: 1; }
+    .tabs button.active { outline: 2px solid #0f6a5a33; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
+    .one-liner {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      padding: 10px 12px;
+      background: #e8f3ef;
+      border: 1px solid #c6ddd5;
+      border-radius: 8px;
+    }
+    .factors {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    @media (max-width: 1100px) {
+      .factors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .factor {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      min-height: 118px;
+    }
+    .factor .name { font-size: 12px; color: var(--muted); }
+    .factor .score {
+      font-size: 28px;
+      font-weight: 750;
+      margin: 4px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .factor .reading { font-size: 13px; font-weight: 650; }
+    .bar {
+      height: 8px;
+      border-radius: 99px;
+      background: #ece7de;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .bar > span { display: block; height: 100%; background: var(--accent); }
+    .f1 .bar > span { background: var(--accent); }
+    .f2 .bar > span { background: var(--cool); }
+    .f3 .bar > span { background: var(--bad); }
+    .f4 .bar > span { background: var(--warn); }
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 960px) { .grid2 { grid-template-columns: 1fr; } }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    #mermaid {
+      overflow: auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      min-height: 180px;
+    }
+    #status { min-height: 18px; color: var(--muted); font-size: 12px; margin-top: 8px; }
+    #status.err { color: var(--bad); }
+    .hidden { display: none; }
+    .plain-box {
+      margin: 0 0 12px;
+      padding: 12px;
+      border: 1px solid #cfd8cf;
+      border-radius: 8px;
+      background: #f3f7f2;
+    }
+    .plain-box h2 { margin: 0 0 8px; color: #2f4f3f; }
+    .plain-summary { margin: 0 0 10px; font-size: 14px; font-weight: 650; }
+    .plain-item { margin: 0 0 8px; padding: 8px 10px; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+    .plain-item b { display: inline-block; min-width: 4.5em; color: #2f4f3f; }
+    .plain-next { margin: 8px 0 0 1.2em; color: var(--muted); }
+    .plain-next li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>紫微四因子试玩</h1>
+      <p>排盘走引擎 · 解释只看共同体感 / 承重星 / 冲击脆弱 / 节律窗口</p>
+    </div>
+    <div class="hint">本地演示 · 非命运断言</div>
+  </header>
+  <main>
+    <aside class="panel">
+      <div class="tabs">
+        <button id="tab-fixture" class="secondary active" type="button">现成盘</button>
+        <button id="tab-birth" class="secondary" type="button">生辰排盘</button>
+      </div>
+
+      <section id="pane-fixture">
+        <h2>选择盘例</h2>
+        <label for="fixture">Fixture</label>
+        <select id="fixture"></select>
+        <label for="asOf1">流年（可选）</label>
+        <input id="asOf1" type="number" placeholder="如 2025" />
+        <button id="run-fixture" type="button">分析这张盘</button>
+      </section>
+
+      <section id="pane-birth" class="hidden">
+        <h2>公历生辰</h2>
+        <div class="row3">
+          <div>
+            <label for="year">年</label>
+            <input id="year" type="number" value="1990" />
+          </div>
+          <div>
+            <label for="month">月</label>
+            <input id="month" type="number" value="1" min="1" max="12" />
+          </div>
+          <div>
+            <label for="day">日</label>
+            <input id="day" type="number" value="1" min="1" max="31" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="hour">时辰 0-11</label>
+            <input id="hour" type="number" value="0" min="0" max="11" />
+          </div>
+          <div>
+            <label for="gender">性别</label>
+            <select id="gender">
+              <option value="male">男</option>
+              <option value="female">女</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="age">当前虚岁（可选）</label>
+            <input id="age" type="number" value="36" />
+          </div>
+          <div>
+            <label for="asOf2">流年（可选）</label>
+            <input id="asOf2" type="number" placeholder="如 2025" />
+          </div>
+        </div>
+        <button id="run-birth" type="button">排盘并分析</button>
+        <p class="hint">时辰用地支序号：子=0 … 亥=11。不自己算盘。</p>
+      </section>
+      <div id="status"></div>
+    </aside>
+
+    <section>
+      <div class="panel">
+        <div id="one-liner" class="one-liner">先选左侧盘例，或输入生辰。</div>
+        <div id="plain-box" class="plain-box">
+          <h2>白话解读（易学概念翻译）</h2>
+          <p id="plain-summary" class="plain-summary">分析后这里用大白话说明承重星、忌压等是什么意思。</p>
+          <div id="plain-factors"></div>
+          <ol id="plain-next" class="plain-next"></ol>
+          <p id="plain-disc" class="hint"></p>
+        </div>
+        <div class="factors" id="factors"></div>
+        <div class="grid2">
+          <div>
+            <h2>承重星 Top</h2>
+            <table>
+              <thead><tr><th>星</th><th>宫</th><th>分</th></tr></thead>
+              <tbody id="keystones"></tbody>
+            </table>
+          </div>
+          <div>
+            <h2>忌压热区</h2>
+            <table>
+              <thead><tr><th>宫</th><th>压力</th></tr></thead>
+              <tbody id="frags"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:12px">
+        <h2>超图摘要</h2>
+        <div id="mermaid">等待分析…</div>
+      </div>
+    </section>
+  </main>
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: "neutral" });
+    const $ = (id) => document.getElementById(id);
+    const status = (msg, err=false) => { const el=$("status"); el.textContent=msg||""; el.className = err ? "err" : ""; };
+    const setBusy = (busy) => {
+      $("run-fixture").disabled = busy;
+      $("run-birth").disabled = busy;
+    };
+
+    function render(payload) {
+      const f = payload.factors.factors;
+      $("one-liner").textContent = payload.factors.one_liner || "";
+      const plain = payload.plain || {};
+      $("plain-summary").textContent = plain.summary || "";
+      const pf = plain.factors_plain || {};
+      const labels = {
+        F1_community: "共同体感",
+        F2_keystone: "承重星",
+        F3_fragility: "冲击脆弱",
+        F4_tempo: "节律窗口",
+      };
+      $("plain-factors").innerHTML = Object.keys(labels).map(k => {
+        const text = pf[k] || "";
+        return `<div class="plain-item"><b>${labels[k]}</b>${text}</div>`;
+      }).join("");
+      const next = plain.how_to_look_next || [];
+      $("plain-next").innerHTML = next.map(x => `<li>${x}</li>`).join("");
+      $("plain-disc").textContent = plain.disclaimer || "";
+      const order = [
+        ["F1_community", "f1"],
+        ["F2_keystone", "f2"],
+        ["F3_fragility", "f3"],
+        ["F4_tempo", "f4"],
+      ];
+      $("factors").innerHTML = order.map(([k, cls]) => {
+        const item = f[k];
+        const pct = Math.round((item.score || 0) * 100);
+        return `<div class="factor ${cls}">
+          <div class="name">${item.name}</div>
+          <div class="score">${Number(item.score).toFixed(2)}</div>
+          <div class="reading">${item.reading || ""}</div>
+          <div class="bar"><span style="width:${pct}%"></span></div>
+        </div>`;
+      }).join("");
+
+      const ks = (payload.metrics && payload.metrics.keystones) || [];
+      $("keystones").innerHTML = ks.slice(0,5).map(x =>
+        `<tr><td>${x.name}</td><td>${x.palace||""}</td><td>${x.score}</td></tr>`
+      ).join("") || "<tr><td colspan=3>无</td></tr>";
+
+      const fr = (payload.metrics && payload.metrics.ji_fragility) || [];
+      $("frags").innerHTML = fr.slice(0,6).map(x =>
+        `<tr><td>${x.palace}</td><td>${x.ji_pressure}</td></tr>`
+      ).join("") || "<tr><td colspan=2>无</td></tr>";
+
+      const mm = payload.mermaid || "flowchart LR\n  a[无图]";
+      const box = $("mermaid");
+      box.innerHTML = "";
+      const pre = document.createElement("pre");
+      pre.className = "mermaid";
+      pre.textContent = mm;
+      box.appendChild(pre);
+      mermaid.run({ nodes: [pre] });
+    }
+
+    async function loadFixtures() {
+      const res = await fetch("/api/fixtures");
+      const data = await res.json();
+      const sel = $("fixture");
+      sel.innerHTML = (data.items || []).map(x =>
+        `<option value="${x.id}">${x.label}</option>`
+      ).join("");
+    }
+
+    $("tab-fixture").onclick = () => {
+      $("tab-fixture").classList.add("active");
+      $("tab-birth").classList.remove("active");
+      $("pane-fixture").classList.remove("hidden");
+      $("pane-birth").classList.add("hidden");
+    };
+    $("tab-birth").onclick = () => {
+      $("tab-birth").classList.add("active");
+      $("tab-fixture").classList.remove("active");
+      $("pane-birth").classList.remove("hidden");
+      $("pane-fixture").classList.add("hidden");
+    };
+
+    $("run-fixture").onclick = async () => {
+      setBusy(true); status("分析中…");
+      try {
+        const id = $("fixture").value;
+        const asOf = $("asOf1").value;
+        const q = new URLSearchParams({ id });
+        if (asOf) q.set("asOfYear", asOf);
+        const res = await fetch("/api/analyze?" + q.toString());
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "failed");
+        render(data);
+        status("完成 · fixture " + id);
+      } catch (e) {
+        status(String(e.message || e), true);
+      } finally { setBusy(false); }
+    };
+
+    $("run-birth").onclick = async () => {
+      setBusy(true); status("排盘中（引擎）…");
+      try {
+        const body = {
+          year: Number($("year").value),
+          month: Number($("month").value),
+          day: Number($("day").value),
+          hour: Number($("hour").value),
+          gender: $("gender").value,
+          age: $("age").value === "" ? null : Number($("age").value),
+          asOfYear: $("asOf2").value === "" ? null : Number($("asOf2").value),
+        };
+        const res = await fetch("/api/analyze-birth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "failed");
+        render(data);
+        status("完成 · 生辰盘");
+      } catch (e) {
+        status(String(e.message || e), true);
+      } finally { setBusy(false); }
+    };
+
+    loadFixtures().then(() => status("就绪")).catch(e => status(String(e), true));
+  </script>
+</body>
+</html>
