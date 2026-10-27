@@ -245,7 +245,10 @@
       <h1>紫微四因子试玩</h1>
       <p>排盘走引擎 · 解释只看共同体感 / 承重星 / 冲击脆弱 / 节律窗口</p>
     </div>
-    <div class="hint">本地演示 · 非命运断言</div>
+    <div class="hint">
+      <div id="env-status">检查环境中…</div>
+      <div>本地演示 · 非命运断言</div>
+    </div>
   </header>
   <main>
     <aside class="panel">
@@ -619,6 +622,23 @@
       copyText(parts.join("\n\n"), $("copy-plain"));
     };
 
+    async function loadHealth() {
+      try {
+        const res = await fetch("/api/health");
+        const d = await res.json();
+        const el = $("env-status");
+        if (d.engine) {
+          el.textContent = "排盘引擎：已就绪";
+          el.style.color = "#2f5b4a";
+        } else {
+          el.textContent = "未找到排盘引擎：只能用现成盘例（设置 ZIWEI_ENGINE_ROOT 后可排自己的盘）";
+          el.style.color = "#9a4d1c";
+        }
+      } catch (e) {
+        $("env-status").textContent = "服务未就绪";
+      }
+    }
+    loadHealth();
     loadFixtures().then(() => status("就绪")).catch(e => status(String(e), true));
   </script>
 </body>
