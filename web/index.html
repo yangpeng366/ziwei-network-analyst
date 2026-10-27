@@ -215,6 +215,28 @@
       cursor: pointer;
     }
     .chip:hover { border-color: var(--accent); color: var(--accent); }
+    .timeline-box {
+      margin: 0 0 12px;
+      padding: 12px;
+      border: 1px solid #c9d2e0;
+      border-radius: 8px;
+      background: #f5f7fb;
+    }
+    .timeline-box h2 { margin: 0 0 8px; color: #2c4a70; }
+    .curve-holder { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+    .tl-tags { margin: 8px 0 0; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      margin: 0 6px 6px 0;
+      border-radius: 99px;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    .tag.move { border-color: #c9a227; color: #8a6d1f; background: #fdf7e7; }
+    .tag.hold { border-color: #5b8f7a; color: #2f5b4a; background: #eef6f2; }
+    .tag.risk { border-color: #b4555f; color: #7c2630; background: #fbeeef; }
   </style>
 </head>
 <body>
@@ -245,6 +267,12 @@
         <div class="chip" data-matter="今年身体要注意什么">身体</div>
         <div class="chip" data-matter="什么时候适合换房">换房</div>
         <button id="run-fixture" type="button">分析这张盘</button>
+        <label for="swFrom">逐年推演区间（可选）</label>
+        <div class="row">
+          <input id="swFrom" type="number" placeholder="起始年 如 2020" />
+          <input id="swTo" type="number" placeholder="结束年 如 2035" />
+        </div>
+        <button id="run-sweep" type="button" class="secondary">只出逐年曲线</button>
       </section>
 
       <section id="pane-birth" class="hidden">
@@ -288,6 +316,11 @@
         </div>
         <label for="matter2">想问的事（可选）</label>
         <input id="matter2" type="text" placeholder="如 今年适合跳槽吗" />
+        <label for="swFrom2">逐年推演区间（可选）</label>
+        <div class="row">
+          <input id="swFrom2" type="number" placeholder="起始年" />
+          <input id="swTo2" type="number" placeholder="结束年" />
+        </div>
         <button id="run-birth" type="button">排盘并分析</button>
         <p class="hint">时辰用地支序号：子=0 … 亥=11。不自己算盘。</p>
       </section>
@@ -312,6 +345,16 @@
           <ol id="matter-actions" class="plain-next"></ol>
         </div>
         <div class="factors" id="factors"></div>
+        <div id="timeline-box" class="timeline-box hidden">
+          <h2>逐年曲线：哪几年该动，哪几年宜守</h2>
+          <div id="tl-summary" class="hint"></div>
+          <div class="curve-holder" id="tl-curve"></div>
+          <div class="tl-tags" id="tl-tags"></div>
+          <table style="margin-top:10px">
+            <thead><tr><th>年</th><th>虚岁</th><th>大限</th><th>脆弱</th><th>节律</th><th>忌压首位</th></tr></thead>
+            <tbody id="tl-rows"></tbody>
+          </table>
+        </div>
         <div class="prompt-box">
           <h2>拿去问任意 AI</h2>
           <p class="hint" style="margin:0 0 8px">无需本地大模型。复制下面整段，粘到任意 AI 即可得到白话解读。</p>
@@ -426,6 +469,36 @@
       mermaid.run({ nodes: [pre] });
     }
 
+    function renderTimeline(tl) {
+      const box = $("timeline-box");
+      if (!tl || !tl.rows || !tl.rows.length) { box.classList.add("hidden"); return; }
+      box.classList.remove("hidden");
+      $("tl-summary").textContent = ((tl.plain || {}).summary) || "";
+      $("tl-curve").innerHTML = tl.svg || "";
+
+      const move = tl.move_years || tl.transition_years || [];
+      const hold = tl.hold_years || tl.steady_years || [];
+      const risk = tl.risk_years || tl.active_years || [];
+      const tag = (label, cls, years) => years && years.length
+        ? `<span class="tag ${cls}">${label}：${years.slice(0, 10).join("、")}${years.length > 10 ? " …" : ""}</span>`
+        : "";
+      $("tl-tags").innerHTML =
+        tag("宜动（结构改写）", "move", move) +
+        tag("宜守（深耕）", "hold", hold) +
+        tag("冲击吃紧", "risk", risk) +
+        `<span class="tag">区间 ${tl.range[0]}–${tl.range[1]}</span>`;
+
+      $("tl-rows").innerHTML = tl.rows.map(r => {
+        const hot = (r.ji_hotspots || [])[0];
+        const hotTxt = hot ? `${hot.palace}(${hot.ji_pressure})` : "-";
+        const isMove = move.includes(r.year);
+        const isRisk = risk.includes(r.year);
+        const mark = isMove ? " ★" : (isRisk ? " !" : "");
+        return `<tr><td>${r.year}${mark}</td><td>${r.age ?? "-"}</td><td>${r.daxian_label || "-"}</td>` +
+               `<td>${r.F3 ?? "-"}</td><td>${r.F4 ?? "-"}</td><td>${hotTxt}</td></tr>`;
+      }).join("");
+    }
+
     async function loadFixtures() {
       const res = await fetch("/api/fixtures");
       const data = await res.json();
@@ -457,11 +530,31 @@
         if (asOf) q.set("asOfYear", asOf);
         const mt = $("matter1").value.trim();
         if (mt) q.set("matter", mt);
+        const sf = $("swFrom").value.trim(), st = $("swTo").value.trim();
+        if (sf && st) { q.set("from", sf); q.set("to", st); }
         const res = await fetch("/api/analyze?" + q.toString());
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "failed");
         render(data);
+        renderTimeline(data.timeline);
         status("完成 · fixture " + id);
+      } catch (e) {
+        status(String(e.message || e), true);
+      } finally { setBusy(false); }
+    };
+
+    $("run-sweep").onclick = async () => {
+      setBusy(true); status("推演中…");
+      try {
+        const id = $("fixture").value;
+        const sf = $("swFrom").value.trim(), st = $("swTo").value.trim();
+        if (!sf || !st) throw new Error("请填写推演区间");
+        const q = new URLSearchParams({ id, from: sf, to: st });
+        const res = await fetch("/api/sweep?" + q.toString());
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "failed");
+        renderTimeline(data);
+        status("完成 · 逐年推演 " + sf + "-" + st);
       } catch (e) {
         status(String(e.message || e), true);
       } finally { setBusy(false); }
@@ -479,6 +572,8 @@
           age: $("age").value === "" ? null : Number($("age").value),
           asOfYear: $("asOf2").value === "" ? null : Number($("asOf2").value),
           matter: $("matter2").value.trim() || null,
+          sweepFrom: $("swFrom2").value.trim() || null,
+          sweepTo: $("swTo2").value.trim() || null,
         };
         const res = await fetch("/api/analyze-birth", {
           method: "POST",
@@ -488,6 +583,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "failed");
         render(data);
+        renderTimeline(data.timeline);
         status("完成 · 生辰盘");
       } catch (e) {
         status(String(e.message || e), true);

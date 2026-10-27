@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Any
 
 
-def build_user_prompt(payload: dict[str, Any], matter_text: str | None = None) -> str:
+def build_user_prompt(payload: dict[str, Any], matter_text: str | None = None, timeline: dict[str, Any] | None = None) -> str:
     factors = payload.get("factors") or {}
     plain = payload.get("plain") or {}
     matter = payload.get("matter") or {}
@@ -38,6 +38,20 @@ def build_user_prompt(payload: dict[str, Any], matter_text: str | None = None) -
         if fp.get(k):
             lines.append(f"- {k}: {fp[k]}")
     lines.append("")
+
+    tl = timeline or payload.get("timeline")
+    if tl:
+        rng = tl.get("range") or []
+        lines.append(f"【逐年推演 {rng[0] if rng else ''}–{rng[1] if len(rng) > 1 else ''}（参考，非结论）】")
+        tl_lines = (tl.get("plain") or {}).get("timeline_plain") or []
+        for line in tl_lines:
+            if str(line).startswith("逐年推演"):
+                continue
+            lines.append(f"- {line}")
+        ty = tl.get("transition_years") or []
+        if ty and not any("大限交接年" in str(x) for x in tl_lines):
+            lines.append("- 大限交接年：" + "、".join(str(y) for y in ty[:8]))
+        lines.append("")
 
     lines.append("【硬证据（勿改）】")
     fblocks = factors.get("factors") or {}

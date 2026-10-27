@@ -87,3 +87,10 @@ v4 解读语料**只引用位置、作 prompt 参考**，不用断语软标签�
 
 见 [docs/examples/README.md](docs/examples/README.md)：
 问题「今年适合跳槽吗」的白话结论、四因子表、可粘贴提示包。
+### D. 逐年曲线（哪几年该动，哪几年宜守）
+
+```powershell
+python scripts/sweep.py --birth 1990-01-01-0-male --from 2020 --to 2035 --svg out/curve.svg
+```
+
+网页里填「逐年推演区间」也能出。详见 [docs/timeline.md](docs/timeline.md)。

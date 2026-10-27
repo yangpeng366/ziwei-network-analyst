@@ -18,6 +18,8 @@ sys.path.insert(0, str(ROOT / "packages"))
 from plain_reading.explain import explain_payload  # noqa: E402
 from matter_query.map import explain_matter  # noqa: E402
 from matter_query.prompt_pack import build_system_prompt, build_user_prompt  # noqa: E402
+from timeline.sweep import sweep_payload  # noqa: E402
+from timeline.curve_svg import curve_svg  # noqa: E402
 
 CONV = ROOT / "packages" / "hypergraph" / "chart2hypergraph.py"
 ENGINE = Path(os.environ.get("ZIWEI_ENGINE_ROOT", r"F:\github\ziwei-doushu"))
@@ -25,6 +27,20 @@ GEN = ENGINE / "scripts" / "gen-one-for-ui.ts"
 FIXTURES = ROOT / "fixtures"
 HOST = "127.0.0.1"
 PORT = int(os.environ.get("ZIWEI_DEMO_PORT", "8765"))
+
+
+def _sweep_range(qs) -> tuple[int, int] | None:
+    frm = (qs.get("from") or [None])[0]
+    to = (qs.get("to") or [None])[0]
+    try:
+        if frm not in (None, "") and to not in (None, ""):
+            a, b = int(frm), int(to)
+            if a > b:
+                a, b = b, a
+            return (a, b)
+    except (TypeError, ValueError):
+        return None
+    return None
 
 
 def list_fixtures() -> list[dict]:
@@ -43,11 +59,19 @@ def list_fixtures() -> list[dict]:
     return items
 
 
-def enrich(payload: dict, matter: str | None = None) -> dict:
+def enrich(payload: dict, matter: str | None = None, timeline: dict | None = None) -> dict:
     payload["plain"] = explain_payload(payload)
     payload["matter"] = explain_matter(payload, matter)
+    if timeline:
+        payload["timeline"] = timeline
+        rng = timeline.get("range") or [None, None]
+        payload["timeline"]["svg"] = curve_svg(
+            timeline.get("rows") or [],
+            timeline.get("daxian_transitions"),
+            title=f"逐年推演 {rng[0]}–{rng[1]}",
+        )
     system_prompt = build_system_prompt()
-    user_prompt = build_user_prompt(payload, matter)
+    user_prompt = build_user_prompt(payload, matter, payload.get("timeline"))
     payload["prompt_pack"] = {
         "system": system_prompt,
         "user": user_prompt,
@@ -63,7 +87,8 @@ def enrich(payload: dict, matter: str | None = None) -> dict:
     return payload
 
 
-def analyze_chart_file(chart_path: Path, as_of_year: int | None = None, matter: str | None = None) -> dict:
+def analyze_chart_file(chart_path: Path, as_of_year: int | None = None, matter: str | None = None,
+                      sweep_range: tuple[int, int] | None = None) -> dict:
     chart = json.loads(chart_path.read_text(encoding="utf-8"))
     if as_of_year is not None:
         chart["asOfYear"] = int(as_of_year)
@@ -73,10 +98,12 @@ def analyze_chart_file(chart_path: Path, as_of_year: int | None = None, matter: 
         subprocess.check_call([sys.executable, str(CONV), str(tmp), "--no-prompt"], cwd=str(ROOT), stdout=subprocess.DEVNULL)
         payload = json.loads((tmp.with_name("chart.hypergraph.json")).read_text(encoding="utf-8"))
     payload["source"] = {"kind": "fixture", "path": str(chart_path)}
-    return enrich(payload, matter)
+    timeline = sweep_payload(chart, sweep_range[0], sweep_range[1]) if sweep_range else None
+    return enrich(payload, matter, timeline)
 
 
-def analyze_birth(y: int, m: int, d: int, h: int, gender: str, age: int | None, as_of_year: int | None, matter: str | None = None) -> dict:
+def analyze_birth(y: int, m: int, d: int, h: int, gender: str, age: int | None, as_of_year: int | None,
+                  matter: str | None = None, sweep_range: tuple[int, int] | None = None) -> dict:
     tsx_cmd = ENGINE / "node_modules" / ".bin" / ("tsx.cmd" if sys.platform.startswith("win") else "tsx")
     if tsx_cmd.exists():
         cmd = [str(tsx_cmd), str(GEN), str(y), str(m), str(d), str(h), gender]
@@ -116,7 +143,8 @@ def analyze_birth(y: int, m: int, d: int, h: int, gender: str, age: int | None, 
         "age": age,
         "asOfYear": as_of_year,
     }
-    return enrich(payload, matter)
+    timeline = sweep_payload(chart, sweep_range[0], sweep_range[1]) if sweep_range else None
+    return enrich(payload, matter, timeline)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -149,6 +177,7 @@ class Handler(BaseHTTPRequestHandler):
                     "engine": ENGINE.exists(),
                     "conv": CONV.exists(),
                     "engine_root": str(ENGINE),
+                    "pid": os.getpid(),
                 },
             )
             return
@@ -166,8 +195,28 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(400, {"error": "unknown fixture id"})
                 return
             try:
-                payload = analyze_chart_file(Path(items[fid]["path"]), as_of_i, matter)
+                payload = analyze_chart_file(Path(items[fid]["path"]), as_of_i, matter, _sweep_range(qs))
                 self._json(200, payload)
+            except Exception as e:
+                self._json(500, {"error": str(e)})
+            return
+        if u.path == "/api/sweep":
+            qs = parse_qs(u.query)
+            fid = (qs.get("id") or [None])[0]
+            rng = _sweep_range(qs)
+            items = {x["id"]: x for x in list_fixtures()}
+            if not fid or fid not in items:
+                self._json(400, {"error": "unknown fixture id"})
+                return
+            if not rng:
+                self._json(400, {"error": "need from/to"})
+                return
+            try:
+                chart = json.loads(Path(items[fid]["path"]).read_text(encoding="utf-8"))
+                data = sweep_payload(chart, rng[0], rng[1])
+                data["svg"] = curve_svg(data["rows"], data.get("daxian_transitions"),
+                                        title=f"逐年推演 {rng[0]}–{rng[1]}")
+                self._json(200, data)
             except Exception as e:
                 self._json(500, {"error": str(e)})
             return
@@ -192,7 +241,10 @@ class Handler(BaseHTTPRequestHandler):
             as_of = body.get("asOfYear")
             as_of_i = int(as_of) if as_of not in (None, "") else None
             matter = str(body.get("matter") or "").strip() or None
-            payload = analyze_birth(y, m, d, h, gender, age_i, as_of_i, matter)
+            rng = None
+            if body.get("sweepFrom") and body.get("sweepTo"):
+                rng = (int(body["sweepFrom"]), int(body["sweepTo"]))
+            payload = analyze_birth(y, m, d, h, gender, age_i, as_of_i, matter, rng)
             self._json(200, payload)
         except Exception as e:
             self._json(500, {"error": str(e)})
@@ -208,6 +260,20 @@ def _force_utf8_stdout() -> None:
 
 def main() -> int:
     _force_utf8_stdout()
+    try:
+        import socket
+
+        probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        probe.settimeout(1.5)
+        if probe.connect_ex((HOST, PORT)) == 0:
+            probe.close()
+            print(f"[提示] 端口 {PORT} 已被占用。可能已有一个演示页在跑：")
+            print(f"       http://{HOST}:{PORT}/")
+            print("       若需重启，请先结束占用进程。")
+            return 1
+        probe.close()
+    except Exception:
+        pass
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"ziwei-network-analyst demo: http://{HOST}:{PORT}/")
     print("Ctrl+C to stop")

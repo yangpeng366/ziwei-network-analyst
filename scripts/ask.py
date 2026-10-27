@@ -84,6 +84,7 @@ def main() -> int:
     src.add_argument("--demo", action="store_true", help="用演示盘")
     ap.add_argument("--matter", default="", help="想问的事")
     ap.add_argument("--as-of", type=int, default=None, help="流年")
+    ap.add_argument("--sweep", default="", help="逐年区间，如 2020-2035；产出 F3/F4 曲线")
     ap.add_argument("--out", type=Path, default=None, help="写出提示包文件")
     ap.add_argument("--print-only", action="store_true", help="只打印，不写文件")
     args = ap.parse_args()
@@ -102,8 +103,16 @@ def main() -> int:
     payload = _convert(chart)
     payload["plain"] = explain_payload(payload)
     payload["matter"] = explain_matter(payload, (args.matter or "").strip() or None)
+    if args.sweep:
+        from timeline.sweep import sweep_payload  # noqa: PLC0415
+
+        try:
+            frm, to = args.sweep.split("-", 1)
+            payload["timeline"] = sweep_payload(chart, int(frm), int(to))
+        except (ValueError, TypeError) as e:
+            raise SystemExit(f"--sweep 格式应为 FROM-TO：{e}")
     system_prompt = build_system_prompt()
-    user_prompt = build_user_prompt(payload, args.matter)
+    user_prompt = build_user_prompt(payload, args.matter, payload.get("timeline"))
     combined = f"# 可粘贴给任意 AI 的提示包\n\n## System\n\n{system_prompt}\n## User\n\n{user_prompt}"
 
     if args.print_only:
@@ -118,6 +127,9 @@ def main() -> int:
     print(f"提示包：{out}")
     print(f"结构盘：{json_out}")
     print(f"事项：{payload['matter']['focus']['label']}")
+    if payload.get("timeline"):
+        rng = payload["timeline"].get("range") or []
+        print(f"逐年推演：{rng[0]}-{rng[1] if len(rng) > 1 else ''}")
     return 0
 
 

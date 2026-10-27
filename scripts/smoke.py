@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / "packages"))
 from plain_reading.explain import explain_payload  # noqa: E402
 from matter_query.map import explain_matter  # noqa: E402
 from matter_query.prompt_pack import build_system_prompt, build_user_prompt  # noqa: E402
+from timeline.sweep import sweep_payload  # noqa: E402
 
 CONV = ROOT / "packages" / "hypergraph" / "chart2hypergraph.py"
 CHART = ROOT / "fixtures" / "sample-chart.json"
@@ -66,6 +67,18 @@ def main() -> int:
             print(f"事项归类错：{query!r} -> {label}，期望 {expect_label}"); return 1
         if not matter.get("plain"):
             print("缺事项白话", query); return 1
+
+    tl = sweep_payload(CHART and json.loads(CHART.read_text(encoding="utf-8")), 2020, 2032)
+    if len(tl.get("rows") or []) != 13:
+        print("逐年推演行数不对", len(tl.get("rows") or [])); return 1
+    if not tl.get("plain", {}).get("summary"):
+        print("缺逐年白话"); return 1
+    if not (tl.get("transition_years") or tl.get("move_years") is not None):
+        print("缺交接年信息"); return 1
+
+    prompt = build_user_prompt(payload, "今年适合跳槽吗", tl)
+    if "逐年推演" not in prompt:
+        print("提示包未带逐年推演"); return 1
 
     prompt = build_user_prompt(payload, "今年适合跳槽吗")
     if "今年适合跳槽吗" not in prompt:
