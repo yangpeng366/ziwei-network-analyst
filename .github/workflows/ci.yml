@@ -23,6 +23,8 @@ jobs:
           python-version: "3.11"
       - name: F1 回归（高协作 > 样本 > 低协作）
         run: python scripts/test-f1-regression.py
+      - name: 事项映射回归（问法语料 + 前后端一致）
+        run: python scripts/test-matter-mapping.py
       - name: 端到端：问事 -> 提示包
         run: |
           python scripts/ask.py --demo --matter "今年适合跳槽吗"
@@ -35,3 +37,5 @@ jobs:
         run: python scripts/check-site-drift.py
       - name: 白话与提示包冒烟
         run: python scripts/smoke.py
+      - name: 静态站结构自检（元素 id 齐备）
+        run: python scripts/test-static-page.py

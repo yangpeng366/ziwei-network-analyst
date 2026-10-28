@@ -1,0 +1,57 @@
+{
+  "note": "真实问法样本。matter_ids / palaces 为人工判定的期望值，改映射规则时必须同步复核本文件。",
+  "cases": [
+    {"q": "今年适合跳槽吗", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
+    {"q": "要不要辞职", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
+    {"q": "公司要裁员，我在名单里吗", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
+    {"q": "这个项目要不要接", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
+    {"q": "今年要不要加薪升职", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
+    {"q": "项目融资能成吗", "matter_id": "career", "matter_ids": ["career", "money"], "palaces": ["官禄", "仆役", "财帛", "迁移", "田宅", "福德"]},
+
+    {"q": "今年财运如何", "matter_id": "money", "matter_ids": ["money"], "palaces": ["财帛", "田宅", "官禄", "福德"]}, {"q": "收入能涨吗", "matter_id": "money", "matter_ids": ["money"], "palaces": ["财帛", "田宅", "官禄", "福德"]},
+    {"q": "投资亏损了怎么办", "matter_id": "money", "matter_ids": ["money"], "palaces": ["财帛", "田宅", "官禄", "福德"]},
+    {"q": "买房首付怎么凑", "matter_id": "money", "matter_ids": ["money", "home"], "palaces": ["财帛", "田宅", "官禄", "福德", "迁移", "父母"]},
+    {"q": "购房贷款压力大", "matter_id": "home", "matter_ids": ["home", "money", "mind"], "palaces": ["田宅", "财帛", "迁移", "父母", "官禄", "福德"]},
+
+    {"q": "这段感情能长久吗", "matter_id": "relationship", "matter_ids": ["relationship"], "palaces": ["夫妻", "福德", "迁移", "交友"]},
+    {"q": "和他合适吗", "matter_id": "relationship", "matter_ids": ["relationship"], "palaces": ["夫妻", "福德", "迁移", "交友"]},
+    {"q": "他对我有意思吗", "matter_id": "relationship", "matter_ids": ["relationship"], "palaces": ["夫妻", "福德", "迁移", "交友"]},
+    {"q": "这两年能脱单吗", "matter_id": "relationship", "matter_ids": ["relationship"], "palaces": ["夫妻", "福德", "迁移", "交友"]},
+    {"q": "婚姻不稳定，要离婚吗", "matter_id": "relationship", "matter_ids": ["relationship"], "palaces": ["夫妻", "福德", "迁移", "交友"]},
+    {"q": "什么时候结婚比较合适", "matter_id": "relationship", "matter_ids": ["relationship"], "palaces": ["夫妻", "福德", "迁移", "交友"], "focus_factors_include": ["F4_tempo"]},
+
+    {"q": "今年身体要注意什么", "matter_id": "health", "matter_ids": ["health"], "palaces": ["疾厄", "福德", "父母"]},
+    {"q": "老是失眠怎么办", "matter_id": "health", "matter_ids": ["health"], "palaces": ["疾厄", "福德", "父母"]},
+    {"q": "体检报告有异常吗", "matter_id": "health", "matter_ids": ["health"], "palaces": ["疾厄", "福德", "父母"]},
+    {"q": "我妈最近身体怎样", "matter_id": "health", "matter_ids": ["health", "family"], "palaces": ["疾厄", "福德", "父母", "子女", "田宅", "兄弟"]},
+    {"q": "父母健康要注意什么", "matter_id": "health", "matter_ids": ["health", "family"], "palaces": ["疾厄", "福德", "父母", "子女", "田宅", "兄弟"]},
+
+    {"q": "最近心里很乱", "matter_id": "mind", "matter_ids": ["mind"], "palaces": ["福德", "命宫", "疾厄"]},
+
+    {"q": "什么时候适合换房", "matter_id": "home", "matter_ids": ["home"], "palaces": ["田宅", "财帛", "迁移", "父母"]},
+    {"q": "要不要买房", "matter_id": "home", "matter_ids": ["home"], "palaces": ["田宅", "财帛", "迁移", "父母"]},
+
+    {"q": "想调去外地", "matter_id": "travel", "matter_ids": ["travel"], "palaces": ["迁移", "交友", "官禄", "疾厄"]},
+    {"q": "出差外地要注意什么", "matter_id": "travel", "matter_ids": ["travel"], "palaces": ["迁移", "交友", "官禄", "疾厄"]},
+
+    {"q": "要不要跟他合伙", "matter_id": "collaboration", "matter_ids": ["collaboration"], "palaces": ["交友", "仆役", "官禄", "夫妻"]},
+    {"q": "这个客户靠得住吗", "matter_id": "collaboration", "matter_ids": ["collaboration"], "palaces": ["交友", "仆役", "官禄", "夫妻"]},
+    {"q": "团队要不要扩招", "matter_id": "collaboration", "matter_ids": ["collaboration"], "palaces": ["交友", "仆役", "官禄", "夫妻"]},
+    {"q": "和同事合作顺利吗", "matter_id": "collaboration", "matter_ids": ["collaboration"], "palaces": ["交友", "仆役", "官禄", "夫妻"]},
+    {"q": "客户合同能签吗", "matter_id": "collaboration", "matter_ids": ["collaboration", "exam"], "palaces": ["交友", "仆役", "官禄", "夫妻", "父母", "疾厄"]},
+    {"q": "最近跟客户合作怎么样", "matter_id": "collaboration", "matter_ids": ["collaboration"], "palaces": ["交友", "仆役", "官禄", "夫妻"], "focus_factors_include": ["F4_tempo"]},
+
+    {"q": "考研能上岸吗", "matter_id": "exam", "matter_ids": ["exam"], "palaces": ["父母", "官禄", "疾厄", "交友"]},
+    {"q": "合同条款有没有坑", "matter_id": "exam", "matter_ids": ["exam"], "palaces": ["父母", "官禄", "疾厄", "交友"]},
+    {"q": "留学申请能成吗", "matter_id": "exam", "matter_ids": ["exam"], "palaces": ["父母", "官禄", "疾厄", "交友"]},
+
+    {"q": "什么时候要孩子", "matter_id": "family", "matter_ids": ["family"], "palaces": ["父母", "子女", "田宅", "兄弟"], "focus_factors_include": ["F4_tempo"]},
+    {"q": "父母催婚我该答应吗", "matter_id": "family", "matter_ids": ["family"], "palaces": ["父母", "子女", "田宅", "兄弟"]},
+
+    {"q": "要不要辞职去外地发展", "matter_id": "career", "matter_ids": ["career", "travel"], "palaces": ["官禄", "仆役", "财帛", "迁移", "交友", "疾厄"]},
+    {"q": "想和合伙人一起创业", "matter_id": "career", "matter_ids": ["career", "collaboration"], "palaces": ["官禄", "仆役", "财帛", "迁移", "交友", "夫妻"]},
+
+    {"q": "看看我最近怎么样", "matter_id": "general", "matter_ids": ["general"], "palaces": ["命宫", "官禄", "夫妻", "财帛"], "matched": false},
+    {"q": "", "matter_id": "general", "matter_ids": ["general"], "palaces": ["命宫", "官禄", "夫妻", "财帛"], "matched": false}
+  ]
+}

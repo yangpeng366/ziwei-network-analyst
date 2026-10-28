@@ -1454,7 +1454,14 @@
       "query": "",
       "matched": false,
       "matter_id": "general",
+      "matter_ids": [
+        "general"
+      ],
       "label": "整体态势",
+      "labels": [
+        "整体态势"
+      ],
+      "secondary_labels": [],
       "palaces": [
         "命宫",
         "官禄",

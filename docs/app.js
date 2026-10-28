@@ -15,23 +15,9 @@
     return D.charts[0] || null;
   }
 
-  /* ---------- 事项映射（与 Python 侧同口径） ---------- */
+  /* ---------- 事项映射（与 Python 侧同口径；算法在 docs/matter.js，两端共用 catalog） ---------- */
   function resolveMatter(q) {
-    q = (q || "").trim();
-    var best = null, bestHits = [];
-    for (var i = 0; i < D.matters.length; i++) {
-      var m = D.matters[i], hits = [];
-      for (var j = 0; j < m.keywords.length; j++) {
-        if (m.keywords[j] && q.indexOf(m.keywords[j]) >= 0) hits.push(m.keywords[j]);
-      }
-      if (hits.length > bestHits.length) { best = m; bestHits = hits; }
-    }
-    if (!best) {
-      best = null;
-      for (var k = 0; k < D.matters.length; k++) if (D.matters[k].id === "general") best = D.matters[k];
-      bestHits = [];
-    }
-    return { matter: best, hits: bestHits, query: q };
+    return ZiweiMatter.resolveMatter(D.matters, D.time_keywords, q);
   }
 
   function rowFor(c, year) {
@@ -123,7 +109,7 @@
     L.push("硬约束：不得改分数；不得重排盘；不得下绝对命运断言；六亲仅参考受限。");
     L.push("");
     L.push("【用户想问的事】" + (focus.query || "（未指定，按整体态势）"));
-    L.push("【事项归类】" + focus.matter.label);
+    L.push("【事项归类】" + focus.label);
     L.push("【事项聚焦草稿】" + plainText);
     L.push("");
     L.push("【四因子一句话】");
@@ -190,7 +176,7 @@
     var y = yearState(c);
     var row = rowFor(c, y);
     var focus = resolveMatter(state.matter);
-    var plainText = matterPlain(c, focus.matter, row);
+    var plainText = matterPlain(c, focus, row);
 
     $("chart-label").textContent = c.label + " · 基准年 " + c.current.year;
     $("one-liner").textContent = c.current.one_liner || "";
@@ -214,10 +200,10 @@
     }).join("");
     $("plain-next").innerHTML = (c.current.plain.how_to_look_next || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("");
 
-    $("matter-label").textContent = "「" + focus.matter.label + "」" + (y !== c.current.year ? "（按 " + y + " 年看）" : "");
+    $("matter-label").textContent = "「" + focus.label + "」" + (y !== c.current.year ? "（按 " + y + " 年看）" : "");
     $("matter-plain").textContent = plainText;
-    $("matter-palaces").textContent = "相关宫位：" + focus.matter.palaces.join("、")
-      + (focus.hits.length ? "（命中：" + focus.hits.join("、") + "）" : "");
+    $("matter-palaces").textContent = "相关宫位：" + focus.palaces.join("、")
+      + (focus.hit_keywords.length ? "（命中：" + focus.hit_keywords.join("、") + "）" : "");
     $("matter-actions").innerHTML = [
       "先盯本题宫位的承重星与忌压，再看是否撞上 F4 换轨窗口。",
       "把建议落成可逆的小动作（留缓冲、分摊负荷、错峰决策），不要一次梭哈。",
@@ -305,7 +291,7 @@
       var c = chart();
       var focus = resolveMatter(state.matter);
       var row = rowFor(c, yearState(c));
-      var txt = matterPlain(c, focus.matter, row) + "\n\n" + c.current.plain.summary;
+      var txt = matterPlain(c, focus, row) + "\n\n" + c.current.plain.summary;
       var ta = $("prompt");
       ta.value = txt; ta.select();
       try { document.execCommand("copy"); } catch (e) {}
