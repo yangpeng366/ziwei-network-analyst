@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "packages"))
 from plain_reading.explain import explain_payload  # noqa: E402
 from matter_query.map import explain_matter  # noqa: E402
+from matter_query.facts import facts_for  # noqa: E402
 from matter_query.prompt_pack import build_system_prompt, build_user_prompt  # noqa: E402
 
 CONV = ROOT / "packages" / "hypergraph" / "chart2hypergraph.py"
@@ -103,6 +104,7 @@ def main() -> int:
     payload = _convert(chart)
     payload["plain"] = explain_payload(payload)
     payload["matter"] = explain_matter(payload, (args.matter or "").strip() or None)
+    payload["facts"] = facts_for(chart, payload["matter"].get("focus") or {})
     if args.sweep:
         from timeline.sweep import sweep_payload  # noqa: PLC0415
 

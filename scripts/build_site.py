@@ -17,6 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "packages"))
 from plain_reading.explain import explain_payload  # noqa: E402
 from matter_query.map import MATTER_CATALOG  # noqa: E402
+from matter_query.facts import build_facts  # noqa: E402
+from matter_query.prompt_pack import render_facts_text  # noqa: E402
 from timeline.sweep import sweep_payload, chart_for_year  # noqa: E402
 from hypergraph.chart2hypergraph import build_hypergraph, compute_core_factors, compute_metrics  # noqa: E402
 
@@ -88,6 +90,8 @@ def build_payload() -> dict:
         factors = compute_core_factors(hg, metrics)
         payload = {"hypergraph": hg, "metrics": metrics, "factors": factors}
         plain = explain_payload(payload)
+        facts = build_facts(chart)
+        base["facts_text"] = render_facts_text(facts)
         base["current"] = {
             "year": cur_year,
             "one_liner": factors.get("one_liner"),

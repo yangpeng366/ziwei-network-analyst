@@ -147,6 +147,14 @@
     var rk = (c.timeline.risk_years || []).filter(function (y) { return y >= state.from && y <= state.to; });
     if (rk.length) L.push("- 冲击吃紧：" + rk.slice(0, 8).join("、"));
     L.push("");
+    if (c.facts_text) {
+      L.push("【盘面事实（解释的唯一依据，可回溯）】");
+      L.push("");
+      L.push(c.facts_text);
+      L.push("");
+      L.push("（以上为机器整理的事实。关键词归类可能不全，可依事实自行调整取用的宫位。）");
+      L.push("");
+    }
     L.push("【硬证据（勿改）】");
     var f = c.current.factors || {};
     Object.keys(f).forEach(function (k) {
@@ -159,11 +167,19 @@
       L.push("- ji_hotspots: " + c.current.ji_fragility.slice(0, 5).map(function (x) { return x.palace + "=" + x.ji_pressure; }).join(", "));
     }
     L.push("");
-    L.push("【请你输出】");
-    L.push("1. 先用大白话回答用户的具体事");
-    L.push("2. 点明：相关宫位 / 承重星 / 忌压热区 / 是否靠近换轨窗口");
-    L.push("3. 给 2-3 条可逆的自我觉察建议（非决策指令）");
-    L.push("4. 结尾加一句免责：仅供参考，非命运断言");
+    L.push("【怎么答】");
+    L.push("1. 第一句就给结论：就用户问的那件事，此刻的势能偏向哪边。");
+    L.push("2. 再讲依据：点名具体宫位与星曜（如「迁移宫廉贞陷、破军旺」「太阴化忌在财帛」），不要只引分数。");
+    L.push("3. 用日常话解释星曜含义（说「这事靠不靠得住」，不要只说「廉贞化忌」）。");
+    L.push("4. 若问题命中某一年的窗口或忌压，点明是哪一年；没有就说不涉及。");
+    L.push("5. 给 2-3 条可逆的小动作（留缓冲、分担、错峰、试一小步），不要下必须怎么做的断言。");
+    L.push("6. 涉及六亲、婚恋、健康时标注「参考受限」。");
+    L.push("7. 结尾一句免责：仅供参考，非命运断言。");
+    L.push("");
+    L.push("【不要做】");
+    L.push("- 不要编造盘上没有的星曜、四化或年份");
+    L.push("- 不要把分数改写成吉凶，也不要用「一定/必然/注定」");
+    L.push("- 不要输出与用户所问无关的整盘泛批");
     return L.join("\n");
   }
 

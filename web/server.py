@@ -17,6 +17,7 @@ WEB = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "packages"))
 from plain_reading.explain import explain_payload  # noqa: E402
 from matter_query.map import explain_matter  # noqa: E402
+from matter_query.facts import facts_for  # noqa: E402
 from matter_query.prompt_pack import build_system_prompt, build_user_prompt  # noqa: E402
 from timeline.sweep import sweep_payload  # noqa: E402
 from timeline.curve_svg import curve_svg  # noqa: E402
@@ -59,9 +60,12 @@ def list_fixtures() -> list[dict]:
     return items
 
 
-def enrich(payload: dict, matter: str | None = None, timeline: dict | None = None) -> dict:
+def enrich(payload: dict, matter: str | None = None, timeline: dict | None = None,
+           chart: dict | None = None) -> dict:
     payload["plain"] = explain_payload(payload)
     payload["matter"] = explain_matter(payload, matter)
+    if chart is not None:
+        payload["facts"] = facts_for(chart, payload["matter"].get("focus") or {})
     if timeline:
         payload["timeline"] = timeline
         rng = timeline.get("range") or [None, None]
@@ -99,7 +103,7 @@ def analyze_chart_file(chart_path: Path, as_of_year: int | None = None, matter: 
         payload = json.loads((tmp.with_name("chart.hypergraph.json")).read_text(encoding="utf-8"))
     payload["source"] = {"kind": "fixture", "path": str(chart_path)}
     timeline = sweep_payload(chart, sweep_range[0], sweep_range[1]) if sweep_range else None
-    return enrich(payload, matter, timeline)
+    return enrich(payload, matter, timeline, chart)
 
 
 def analyze_birth(y: int, m: int, d: int, h: int, gender: str, age: int | None, as_of_year: int | None,
@@ -144,7 +148,7 @@ def analyze_birth(y: int, m: int, d: int, h: int, gender: str, age: int | None, 
         "asOfYear": as_of_year,
     }
     timeline = sweep_payload(chart, sweep_range[0], sweep_range[1]) if sweep_range else None
-    return enrich(payload, matter, timeline)
+    return enrich(payload, matter, timeline, chart)
 
 
 class Handler(BaseHTTPRequestHandler):

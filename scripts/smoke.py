@@ -15,6 +15,7 @@ from plain_reading.explain import explain_payload  # noqa: E402
 from matter_query.map import explain_matter  # noqa: E402
 from matter_query.prompt_pack import build_system_prompt, build_user_prompt  # noqa: E402
 from timeline.sweep import sweep_payload  # noqa: E402
+from matter_query.facts import facts_for  # noqa: E402
 
 CONV = ROOT / "packages" / "hypergraph" / "chart2hypergraph.py"
 CHART = ROOT / "fixtures" / "sample-chart.json"
@@ -68,7 +69,18 @@ def main() -> int:
         if not matter.get("plain"):
             print("缺事项白话", query); return 1
 
-    tl = sweep_payload(CHART and json.loads(CHART.read_text(encoding="utf-8")), 2020, 2032)
+    chart = json.loads(CHART.read_text(encoding="utf-8"))
+    facts = facts_for(chart, payload["matter"].get("focus") or {})
+    if len(facts.get("twelve") or []) != 12:
+        print("十二宫一览不齐", len(facts.get("twelve") or [])); return 1
+    if not facts.get("cards"):
+        print("缺相关宫详卡"); return 1
+    payload["facts"] = facts
+    p0 = build_user_prompt(payload, "今年适合跳槽吗")
+    if "盘面事实" not in p0 or "十二宫一览" not in p0:
+        print("提示词缺事实卡"); return 1
+
+    tl = sweep_payload(chart, 2020, 2032)
     if len(tl.get("rows") or []) != 13:
         print("逐年推演行数不对", len(tl.get("rows") or [])); return 1
     if not tl.get("plain", {}).get("summary"):
