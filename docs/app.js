@@ -243,7 +243,7 @@
 
   function init() {
     if (!D.charts || !D.charts.length) {
-      $("status").textContent = "数据未加载：请先运行 python scripts/build-site.py";
+      $("status").textContent = "数据未加载：请先运行 python scripts/build_site.py";
       return;
     }
     var sel = $("chart");

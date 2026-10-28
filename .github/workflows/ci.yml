@@ -30,8 +30,8 @@ jobs:
       - name: 逐年推演（曲线 + 交接年）
         run: python scripts/sweep.py --chart fixtures/sample-chart.json --from 2020 --to 2032
       - name: 生成静态站数据
-        run: python scripts/build-site.py
+        run: python scripts/build_site.py
       - name: 静态站数据未漂移
-        run: git diff --exit-code docs/data/charts.js
+        run: python scripts/check-site-drift.py
       - name: 白话与提示包冒烟
         run: python scripts/smoke.py

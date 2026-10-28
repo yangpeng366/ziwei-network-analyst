@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""生成静态站数据：site/data/charts.js（双击 HTML 也能跑，无需服务器）。"""
+"""生成静态站数据：docs/data/charts.js（双击 index.html 亦可运行，无需服务器）。
+
+同一份数据也用于本地演示与 GitHub Pages，因此生成必须可复现：
+- 浮点统一四舍五入到 4 位
+- 固定 LF 换行
+"""
 from __future__ import annotations
 
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "packages"))
 from plain_reading.explain import explain_payload  # noqa: E402
 from matter_query.map import MATTER_CATALOG  # noqa: E402
-from timeline.sweep import sweep_payload  # noqa: E402
+from timeline.sweep import sweep_payload, chart_for_year  # noqa: E402
+from hypergraph.chart2hypergraph import build_hypergraph, compute_core_factors, compute_metrics  # noqa: E402
 
 OUT = ROOT / "docs" / "data" / "charts.js"
 
@@ -24,17 +31,24 @@ CHARTS = [
 SWEEP_FROM, SWEEP_TO = 2015, 2050
 
 
-def load_chart(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+def _round_floats(obj: Any) -> Any:
+    """递归四舍五入浮点，保证跨 Python 版本一致。"""
+    if isinstance(obj, float):
+        return round(obj, 4)
+    if isinstance(obj, dict):
+        return {k: _round_floats(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_round_floats(v) for v in obj]
+    return obj
 
 
-def main() -> int:
+def build_payload() -> dict:
     charts = []
     for cid, label, path in CHARTS:
         if not path.exists():
             print("skip (missing):", path)
             continue
-        chart = load_chart(path)
+        chart = json.loads(path.read_text(encoding="utf-8"))
         birth = chart.get("birthInfo") or {}
         base = {
             "id": cid,
@@ -56,7 +70,6 @@ def main() -> int:
                 for dx in (chart.get("daXians") or [])
             ],
         }
-        # 逐年推演（自带 factors / plain）
         tl = sweep_payload(chart, SWEEP_FROM, SWEEP_TO)
         base["timeline"] = {
             "range": tl["range"],
@@ -68,13 +81,7 @@ def main() -> int:
             "risk_years": tl.get("risk_years") or [],
             "summary": tl["summary"],
         }
-        # 基准年（当年）完整 payload
-        cur_year = int((chart.get("birthInfo") or {}).get("year") or 2000) + int(chart.get("currentAge") or 30) - 1
-        c2 = dict(chart)
-        c2["asOfYear"] = cur_year
-        from timeline.sweep import chart_for_year  # noqa: PLC0415
-        from hypergraph.chart2hypergraph import build_hypergraph, compute_core_factors, compute_metrics  # noqa: PLC0415
-
+        cur_year = int(birth.get("year") or 2000) + int(chart.get("currentAge") or 30) - 1
         c3 = chart_for_year(chart, cur_year)
         hg = build_hypergraph(c3)
         metrics = compute_metrics(hg)
@@ -99,7 +106,7 @@ def main() -> int:
         print("added:", cid, label)
 
     data = {
-        "generated_by": "scripts/build-site.py",
+        "generated_by": "scripts/build_site.py",
         "sweep_range": [SWEEP_FROM, SWEEP_TO],
         "matters": [
             {"id": c["id"], "label": c["label"], "keywords": c["keywords"], "palaces": c["palaces"], "lens": c["lens"]}
@@ -107,10 +114,24 @@ def main() -> int:
         ],
         "charts": charts,
     }
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    body = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
-    OUT.write_text("window.ZIWEI_DATA = " + body + ";\n", encoding="utf-8")
-    print("wrote:", OUT, OUT.stat().st_size, "bytes")
+    return _round_floats(data)
+
+
+def serialize(data: dict) -> str:
+    body = json.dumps(data, ensure_ascii=False, separators=(",", ":"), sort_keys=False)
+    return "window.ZIWEI_DATA = " + body + ";\n"
+
+
+def write_payload(data: dict, path: Path = OUT) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(serialize(data), encoding="utf-8", newline="\n")
+    return path
+
+
+def main() -> int:
+    data = build_payload()
+    path = write_payload(data)
+    print("wrote:", path, path.stat().st_size, "bytes")
     return 0
 
 
