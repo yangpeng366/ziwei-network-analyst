@@ -22,33 +22,13 @@ from plain_reading.explain import explain_payload  # noqa: E402
 from matter_query.map import explain_matter  # noqa: E402
 from matter_query.prompt_pack import build_system_prompt, build_user_prompt  # noqa: E402
 
-BRANCHES = list("子丑寅卯辰巳午未申酉戌亥")
-BRIGHTNESS_STATE = {
-    "庙": 1.0,
-    "旺": 0.85,
-    "得": 0.7,
-    "利": 0.55,
-    "平": 0.45,
-    "地": 0.4,
-    "不": 0.25,
-    "闲": 0.2,
-    "陷": 0.1,
-}
-SIHUA_WEIGHT = {"禄": 1.0, "权": 0.85, "科": 0.55, "忌": -1.0}
+from hypergraph.constants import (  # noqa: E402
+    BRANCHES,
+    BRIGHTNESS_STATE,
+    SIHUA_WEIGHT,
+    SI_HUA_TABLE,
+)
 
-# Stem index 0=甲 … 9=癸 → (禄, 权, 科, 忌)
-SI_HUA_TABLE = {
-    0: ("廉贞", "破军", "武曲", "太阳"),
-    1: ("天机", "天梁", "紫微", "太阴"),
-    2: ("天同", "天机", "文昌", "廉贞"),
-    3: ("太阴", "天同", "天机", "巨门"),
-    4: ("贪狼", "太阴", "右弼", "天机"),
-    5: ("武曲", "贪狼", "天梁", "文曲"),
-    6: ("太阳", "武曲", "太阴", "天同"),
-    7: ("巨门", "太阳", "文曲", "文昌"),
-    8: ("天梁", "紫微", "左辅", "武曲"),
-    9: ("破军", "巨门", "太阴", "贪狼"),
-}
 
 
 def sihua_by_stem(stem_index: int | None) -> dict[str, str]:

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from hypergraph.chart2hypergraph import SI_HUA_TABLE, BRANCHES
+from hypergraph.constants import SI_HUA_TABLE, BRANCHES
 
 PALACE_LIFE = {
     "命宫": "自己怎么活、怎么被看见",
