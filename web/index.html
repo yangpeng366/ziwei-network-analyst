@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>紫微四因子试玩</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%2714%27%20fill%3D%27%231f2430%27%2F%3E%3Cg%20stroke%3D%27%23c9a227%27%20stroke-width%3D%271.6%27%3E%3Cpath%20d%3D%27M16%203v26M3%2016h26M6.5%206.5l19%2019M25.5%206.5l-19%2019%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%273.4%27%20fill%3D%27%23c9a227%27%2F%3E%3C%2Fsvg%3E" />
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     :root {
@@ -438,16 +439,16 @@
       }).join("");
 
       const m = payload.matter || {};
-      const box = $("matter-box");
+      const mbox = $("matter-box");
       if (m.plain) {
-        box.classList.remove("hidden");
+        mbox.classList.remove("hidden");
         $("matter-title").textContent = "「" + ((m.focus && m.focus.label) || "整体态势") + "」";
         $("matter-plain").textContent = m.plain;
         const pal = (m.focus && m.focus.palaces) || [];
         $("matter-palaces").textContent = pal.length ? "相关宫位：" + pal.join("、") : "";
         $("matter-actions").innerHTML = (m.actions || []).map(x => `<li>${x}</li>`).join("");
       } else {
-        box.classList.add("hidden");
+        mbox.classList.add("hidden");
       }
       const pp = payload.prompt_pack || {};
       $("prompt-text").value = pp.combined_markdown || pp.user || "";
@@ -463,19 +464,19 @@
       ).join("") || "<tr><td colspan=2>无</td></tr>";
 
       const mm = payload.mermaid || "flowchart LR\n  a[无图]";
-      const box = $("mermaid");
-      box.innerHTML = "";
+      const gbox = $("mermaid");
+      gbox.innerHTML = "";
       const pre = document.createElement("pre");
       pre.className = "mermaid";
       pre.textContent = mm;
-      box.appendChild(pre);
+      gbox.appendChild(pre);
       mermaid.run({ nodes: [pre] });
     }
 
     function renderTimeline(tl) {
-      const box = $("timeline-box");
-      if (!tl || !tl.rows || !tl.rows.length) { box.classList.add("hidden"); return; }
-      box.classList.remove("hidden");
+      const tbox = $("timeline-box");
+      if (!tl || !tl.rows || !tl.rows.length) { tbox.classList.add("hidden"); return; }
+      tbox.classList.remove("hidden");
       $("tl-summary").textContent = ((tl.plain || {}).summary) || "";
       $("tl-curve").innerHTML = tl.svg || "";
 
