@@ -5,6 +5,12 @@
 排盘交给成熟引擎 [ziwei-doushu](https://github.com/Renhuai123/ziwei-doushu)；本仓库只做**解释层**：
 不重排盘、不编断语、不下绝对命运判断。
 
+## 在线试玩（零安装）
+
+**[https://yangpeng366.github.io/ziwei-network-analyst/](https://yangpeng366.github.io/ziwei-network-analyst/)**
+
+打开即用：选盘 → 填「想问的事」→ 看白话与逐年曲线 → 复制提示词给任意 AI。
+数据已预计算，不需要装 Python，也不需要排盘引擎。
 ## 四个因子
 
 | 因子 | 白话 | 问自己 |
