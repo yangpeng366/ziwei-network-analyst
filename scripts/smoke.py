@@ -71,11 +71,15 @@ def main() -> int:
             print("缺事项白话", query); return 1
 
     chart = json.loads(CHART.read_text(encoding="utf-8"))
-    facts = facts_for(chart, payload["matter"].get("focus") or {})
+    hit_matter = explain_matter(payload, "今年适合跳槽吗")
+    facts = facts_for(chart, hit_matter.get("focus") or {})
     if len(facts.get("twelve") or []) != 12:
         print("十二宫一览不齐", len(facts.get("twelve") or [])); return 1
     if not facts.get("cards"):
         print("缺相关宫详卡"); return 1
+    broad = facts_for(chart, {"matched": False, "palaces": [], "label": "整体态势"})
+    if broad.get("cards"):
+        print("未命中关键词时不应铺开详卡", len(broad["cards"])); return 1
     payload["facts"] = facts
     p0 = build_user_prompt(payload, "今年适合跳槽吗")
     if "盘面事实" not in p0 or "十二宫一览" not in p0:

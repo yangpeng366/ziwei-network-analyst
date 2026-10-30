@@ -37,5 +37,7 @@ jobs:
         run: python scripts/check-site-drift.py
       - name: 白话与提示包冒烟
         run: python scripts/smoke.py
+      - name: 提示词瘦身回归（星曜不重复 + 宽泛提问不铺满）
+        run: python scripts/test-prompt-slim.py
       - name: 静态站结构自检（元素 id 齐备）
         run: python scripts/test-static-page.py

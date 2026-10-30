@@ -4,7 +4,7 @@
 
 分四层：
 1. 十二宫一览：每宫主星/辅星/亮度/生年四化（简洁，供 LLM 自行取用）
-2. 相关宫详卡：题问命中的宫，展开星曜、亮度、自化、与命宫关系
+2. 相关宫详卡：题问命中的宫，展开宫义与与命宫关系（星曜已在一览，不重复）
 3. 生年四化飞入：哪颗星化禄权科忌、落在哪宫
 4. 大限：当前所处大限、宫干四化的落点
 """
@@ -72,6 +72,30 @@ def _stars_of(palace: dict[str, Any], kind: str) -> list[dict[str, Any]]:
         )
     return res
 
+def _ming_branch(chart: dict[str, Any]) -> int | None:
+    for p in _palaces(chart):
+        if p.get("isMingGong"):
+            return p.get("branch")
+    return None
+
+def relation_to_ming(branch: int | None, ming_branch: int | None) -> str:
+    """该宫与命宫的关系：命宫本体 / 三方 / 对宫 / 之外。"""
+    if branch is None or ming_branch is None:
+        return "命宫之外"
+    if branch == ming_branch:
+        return "命宫"
+    if branch == (ming_branch + 6) % 12:
+        return "命宫对宫"
+    if branch in SANFANG.get(ming_branch, ()):
+        return "命宫三方"
+    return "命宫之外"
+
+
+def _palace_label(name: Any) -> str:
+    """宫名统一补「宫」字；已带「宫」的不要再叠一个（命宫宫）。"""
+    nm = str(name or "")
+    return nm if nm.endswith("宫") else f"{nm}宫"
+
 
 def _self_sihua(palace: dict[str, Any]) -> list[str]:
     """宫干四化落在本宫星曜上 = 自化。"""
@@ -90,11 +114,13 @@ def _self_sihua(palace: dict[str, Any]) -> list[str]:
 def twelve_palaces(chart: dict[str, Any]) -> list[dict[str, Any]]:
     """十二宫一览（紧凑）。"""
     rows = []
+    ming_branch = _ming_branch(chart)
     for p in _palaces(chart):
         major = _stars_of(p, "major")
         minor = _stars_of(p, "minor")
         lucky = _stars_of(p, "lucky")
         sihua_marks = [f"{s['name']}化{s['sihua']}" for s in (major + minor + lucky) if s.get("sihua")]
+        branch = p.get("branch")
         rows.append(
             {
                 "name": p.get("name"),
@@ -104,6 +130,8 @@ def twelve_palaces(chart: dict[str, Any]) -> list[dict[str, Any]]:
                 "minor": [f"{s['name']}({s['brightness']})" if s.get("brightness") else s["name"] for s in minor],
                 "lucky": [f"{s['name']}{('化' + s['sihua']) if s.get('sihua') else ''}" for s in lucky],
                 "sihua_marks": sihua_marks,
+                "self_sihua": _self_sihua(p),
+                "relation_to_ming": relation_to_ming(branch, ming_branch),
                 "is_empty": bool(p.get("isEmpty")),
                 "is_ming": bool(p.get("isMingGong")),
             }
@@ -117,30 +145,20 @@ def sihua_inflows(chart: dict[str, Any]) -> list[str]:
     for p in _palaces(chart):
         for s in p.get("stars") or []:
             if s.get("siHua"):
-                lines.append(f"{s.get('name')} 化{s.get('siHua')} → {p.get('name')}宫")
+                lines.append(f"{s.get('name')} 化{s.get('siHua')} → {_palace_label(p.get('name'))}")
     return lines
 
 
 def palace_cards(chart: dict[str, Any], names: list[str]) -> list[dict[str, Any]]:
     """相关宫详卡。"""
     want = {n for n in names if n}
-    ming_branch = None
-    for p in _palaces(chart):
-        if p.get("isMingGong"):
-            ming_branch = p.get("branch")
+    ming_branch = _ming_branch(chart)
     cards = []
     for p in _palaces(chart):
         if p.get("name") not in want:
             continue
         branch = p.get("branch")
-        rel = "命宫"
-        if branch is not None and ming_branch is not None and branch != ming_branch:
-            if branch == (ming_branch + 6) % 12:
-                rel = "命宫对宫"
-            elif branch in SANFANG.get(ming_branch, ()):
-                rel = "命宫三方"
-            else:
-                rel = "命宫之外"
+        rel = relation_to_ming(branch, ming_branch)
         major = _stars_of(p, "major")
         minor = _stars_of(p, "minor")
         lucky = _stars_of(p, "lucky")
@@ -192,7 +210,7 @@ def daxian_facts(chart: dict[str, Any], index: Any = None) -> dict[str, Any] | N
             for s in p.get("stars") or []:
                 for kind, star in transforms.items():
                     if s.get("name") == star:
-                        hits.append(f"{star}在{p.get('name')}宫化{kind}")
+                        hits.append(f"{star}在{_palace_label(p.get('name'))}化{kind}")
     return {
         "index": idx,
         "start_age": dx.get("startAge"),
@@ -225,12 +243,20 @@ def resolve_palace_names(chart: dict[str, Any], names: list[str]) -> list[str]:
     return out
 
 
-def build_facts(chart: dict[str, Any], palaces: list[str] | None = None) -> dict[str, Any]:
-    """打包成提示词可直接使用的素材。"""
+def build_facts(
+    chart: dict[str, Any],
+    palaces: list[str] | None = None,
+    cards_title: str = "与本题直接相关的宫（详卡）",
+) -> dict[str, Any]:
+    """打包成提示词可直接使用的素材。
+
+    星曜与四化只在「十二宫一览」给一次；详卡只补宫义与三方关系，避免同一份星曜重复两遍。
+    """
     names = resolve_palace_names(chart, palaces or [])
     return {
         "twelve": twelve_palaces(chart),
         "cards": palace_cards(chart, names),
+        "cards_title": cards_title,
         "sihua_inflows": sihua_inflows(chart),
         "daxian": daxian_facts(chart),
         "palace_life": PALACE_LIFE,
@@ -238,8 +264,15 @@ def build_facts(chart: dict[str, Any], palaces: list[str] | None = None) -> dict
 
 
 def facts_for(chart: dict[str, Any], focus: dict[str, Any]) -> dict[str, Any]:
-    """按事项焦点取事实卡；问题未命中关键词时给全部十二宫，让 LLM 自行取用。"""
+    """按事项焦点取事实卡。
+
+    命中关键词：只展开命中的相关宫（≤6），其余宫留在十二宫一览里当背景。
+    未命中：不再逐宫铺开 12 张详卡，只给十二宫一览 + 宫义速查，让 LLM 自行取用。
+    """
     palaces = list(focus.get("palaces") or [])
-    if not focus.get("matched"):
-        palaces = [row["name"] for row in twelve_palaces(chart)]
-    return build_facts(chart, palaces)
+    matched = bool(focus.get("matched"))
+    if not matched:
+        palaces = []
+    facts = build_facts(chart, palaces)
+    facts["matched"] = matched
+    return facts

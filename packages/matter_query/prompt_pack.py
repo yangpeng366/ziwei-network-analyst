@@ -6,12 +6,55 @@ from __future__ import annotations
 from typing import Any
 
 
+# 宫义速查的顺序：命宫在前，其余按人生面展开
+LIFE_ORDER = [
+    "命宫", "兄弟", "夫妻", "子女", "财帛", "疾厄", "迁移",
+    "交友", "仆役", "官禄", "田宅", "福德", "父母",
+]
+
+# 与命宫关系在十二宫一览里用短标签，详卡里用全称
+REL_SHORT = {
+    "命宫": "本宫",
+    "命宫三方": "三方",
+    "命宫对宫": "对宫",
+    "命宫之外": "之外",
+}
+
+
+def _palace_label(name: Any) -> str:
+    nm = str(name or "")
+    return nm if nm.endswith("宫") else f"{nm}宫"
+
+
+def _life_line(facts: dict[str, Any]) -> str:
+    """宫义速查：没命中关键词时，一行说清十二宫各管什么。"""
+    life = facts.get("palace_life") or {}
+    rows = facts.get("twelve") or []
+    by_name = {str(r.get("name") or ""): r for r in rows}
+    bits: list[str] = []
+    for name in LIFE_ORDER:
+        row = by_name.get(name)
+        if not row:
+            continue
+        meaning = life.get(name) or row.get("life") or "这一宫所管的生活面"
+        bits.append(f"{_palace_label(name)}={meaning}")
+    for name, row in by_name.items():
+        if name in LIFE_ORDER:
+            continue
+        meaning = life.get(name) or row.get("life") or "这一宫所管的生活面"
+        bits.append(f"{_palace_label(name)}={meaning}")
+    return "；".join(bits)
+
+
 def render_facts_text(facts: dict[str, Any]) -> str:
-    """把事实卡渲染成提示词正文（静态站与本地共用同一份，保证一致）。"""
+    """把事实卡渲染成提示词正文（静态站与本地共用同一份，保证一致）。
+
+    星曜/亮度/四化只在「十二宫一览」给一次；详卡只补宫义，避免同一份星曜重复两遍。
+    """
     if not facts:
         return ""
     out: list[str] = []
-    out.append("· 十二宫一览（宫名｜主星(亮度)｜辅星｜生年四化）")
+    out.append("· 十二宫一览（宫名(与命宫关系)｜主星(亮度)｜辅星｜生年四化｜自化）")
     for row in facts.get("twelve") or []:
         parts = []
         if row.get("major"):
@@ -20,11 +63,16 @@ def render_facts_text(facts: dict[str, Any]) -> str:
             parts.append("辅星 " + "、".join(row["minor"]))
         if row.get("lucky"):
             parts.append("吉煞 " + "、".join(row["lucky"]))
+        if row.get("self_sihua"):
+            parts.append("自化 " + "、".join(row["self_sihua"]))
         if row.get("is_empty"):
             parts.append("空宫(借对宫论)")
-        nm = str(row.get("name") or "")
-        label = nm if nm.endswith("宫") else f"{nm}宫"
-        out.append(f"  - {label}：{'；'.join(parts) if parts else '无主星'}")
+        rel = str(row.get("relation_to_ming") or "")
+        tag = f"({REL_SHORT.get(rel, rel)})" if rel else ""
+        out.append(
+            f"  - {_palace_label(row.get('name'))}{tag}："
+            + ("；".join(parts) if parts else "无主星")
+        )
     if facts.get("sihua_inflows"):
         out.append("")
         out.append("· 生年四化飞入")
@@ -41,22 +89,23 @@ def render_facts_text(facts: dict[str, Any]) -> str:
     cards = facts.get("cards") or []
     if cards:
         out.append("")
-        out.append("· 与本题直接相关的宫（详卡）")
+        out.append("· " + str(facts.get("cards_title") or "与本题直接相关的宫（详卡）"))
         for c in cards:
-            bits = []
-            if c.get("major"):
-                bits.append("主星 " + "、".join(f"{s['name']}({s.get('brightness')})" for s in c["major"]))
-            if c.get("minor"):
-                bits.append("辅星 " + "、".join(f"{s['name']}({s.get('brightness')})" for s in c["minor"]))
-            if c.get("self_sihua"):
-                bits.append("自化 " + "、".join(c["self_sihua"]))
-            cn = str(c.get("name") or "")
-            clabel = cn if cn.endswith("宫") else f"{cn}宫"
             out.append(
-                f"  - {clabel}（{c.get('life')}；与命宫关系：{c.get('relation_to_ming')}）"
-                + ("：" + "；".join(bits) if bits else "")
-                + ("；" + c["note"] if c.get("note") else "")
+                f"  - {_palace_label(c.get('name'))}"
+                f"（{c.get('life')}；与命宫关系：{c.get('relation_to_ming')}）"
             )
+    else:
+        # 未命中关键词：不铺开十二张详卡，一行宫义速查即可
+        life_line = _life_line(facts)
+        if life_line:
+            out.append("")
+            hint = (
+                "问题未命中关键词，按整体态势取用"
+                if facts.get("matched") is False
+                else "未找到对应宫位，仅给十二宫一览"
+            )
+            out.append("· 宫义速查（" + hint + "）：" + life_line)
     return "\n".join(out)
 
 

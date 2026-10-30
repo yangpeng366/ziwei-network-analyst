@@ -91,7 +91,7 @@ def build_payload() -> dict:
         payload = {"hypergraph": hg, "metrics": metrics, "factors": factors}
         plain = explain_payload(payload)
         all_names = [row["name"] for row in twelve_palaces(chart)]
-        facts = build_facts(chart, all_names)
+        facts = build_facts(chart, all_names, cards_title="全盘十二宫（详卡）")
         base["facts_text"] = render_facts_text(facts)
         base["current"] = {
             "year": cur_year,
