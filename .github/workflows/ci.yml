@@ -23,6 +23,10 @@ jobs:
           python-version: "3.11"
       - name: F1 回归（高协作 > 样本 > 低协作）
         run: python scripts/test-f1-regression.py
+      - name: fixture 转换可复现（两次一致 + 与基准件一致）
+        run: python scripts/test-fixture-repro.py
+      - name: Skill 可被显式调用（frontmatter + 路径无漂 + 入口命令）
+        run: python scripts/test-skill-entry.py
       - name: 事项映射回归（问法语料 + 前后端一致）
         run: python scripts/test-matter-mapping.py
       - name: 端到端：问事 -> 提示包
