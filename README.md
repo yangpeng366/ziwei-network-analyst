@@ -25,6 +25,7 @@ python scripts/ask.py --birth 1990-01-01-0-male --matter "今年适合跳槽吗"
 
 **Codex Skill**
 装 `skill/ziwei-network-analyst`，对 agent 说「帮我看看今年跳槽是否合适」。
+改了仓内 skill 需重装才生效：`pwsh -File scripts/install-skill.ps1`（装到 `%USERPROFILE%\.codex-home\skills`；`scripts/test-skill-entry.py` 会查两端是否漂移）。
 
 **想知道哪几年该动、哪几年宜守**（可选）
 ```powershell
