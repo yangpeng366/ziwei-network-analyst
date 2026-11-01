@@ -1,5 +1,5 @@
 {
-  "note": "真实问法样本。matter_ids / palaces 为人工判定的期望值，改映射规则时必须同步复核本文件。",
+  "note": "真实问法样本。matter_ids / palaces 为人工判定的期望值，改映射规则时必须同步复核本文件。同分时主事项按目录顺序（事业→钱财→亲密→身体→心态→安家→外出→协作→考试→家庭）取先者；兼看项需 ≥ max(1.5, 主分×0.4)。口语化问法（如裸辞/被裁/变心/睡不着）必须能命中对应类别，否则只会落到 general 兜底。",
   "cases": [
     {"q": "今年适合跳槽吗", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
     {"q": "要不要辞职", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
@@ -52,6 +52,33 @@
     {"q": "想和合伙人一起创业", "matter_id": "career", "matter_ids": ["career", "collaboration"], "palaces": ["官禄", "仆役", "财帛", "迁移", "交友", "夫妻"]},
 
     {"q": "看看我最近怎么样", "matter_id": "general", "matter_ids": ["general"], "palaces": ["命宫", "官禄", "夫妻", "财帛"], "matched": false},
+
+    {"q": "要不要裸辞", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
+    {"q": "被裁了，接下来怎么办", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"], "focus_factors_include": ["F4_tempo"]},
+    {"q": "工资太低了，想涨薪", "matter_id": "career", "matter_ids": ["career", "money"], "palaces": ["官禄", "仆役", "财帛", "迁移", "田宅", "福德"]},
+    {"q": "他是不是变心了", "matter_id": "relationship", "matter_ids": ["relationship"], "palaces": ["夫妻", "福德", "迁移", "交友"]},
+    {"q": "睡不着怎么办", "matter_id": "health", "matter_ids": ["health"], "palaces": ["疾厄", "福德", "父母"]},
+    {"q": "最近想摆烂", "matter_id": "mind", "matter_ids": ["mind"], "palaces": ["福德", "命宫", "疾厄"], "focus_factors_include": ["F4_tempo"]},
+    {"q": "这个合伙人靠谱吗", "matter_id": "collaboration", "matter_ids": ["collaboration"], "palaces": ["交友", "仆役", "官禄", "夫妻"]},
+    {"q": "孩子要上小学了", "matter_id": "family", "matter_ids": ["family"], "palaces": ["父母", "子女", "田宅", "兄弟"]},
+    {"q": "要不要卖掉房子", "matter_id": "home", "matter_ids": ["home"], "palaces": ["田宅", "财帛", "迁移", "父母"]},
+    {"q": "打算去外地发展", "matter_id": "travel", "matter_ids": ["travel"], "palaces": ["迁移", "交友", "官禄", "疾厄"]},
+    {"q": "考研还是先工作", "matter_id": "career", "matter_ids": ["career", "exam"], "palaces": ["官禄", "仆役", "财帛", "迁移", "父母", "疾厄"]},
+    {"q": "房贷还不上怎么办", "matter_id": "home", "matter_ids": ["home"], "palaces": ["田宅", "财帛", "迁移", "父母"]},
+    {"q": "投了基金亏损了，想换工作吗", "matter_id": "career", "matter_ids": ["career", "money"], "palaces": ["官禄", "仆役", "财帛", "迁移", "田宅", "福德"]},
+    {"q": "为了跳槽去外地值得吗", "matter_id": "career", "matter_ids": ["career", "travel"], "palaces": ["官禄", "仆役", "财帛", "迁移", "交友", "疾厄"]},
+    {"q": "一边带娃一边想跳槽", "matter_id": "career", "matter_ids": ["career", "family"], "palaces": ["官禄", "仆役", "财帛", "迁移", "父母", "子女"]},
+    {"q": "工作没了还有房贷", "matter_id": "career", "matter_ids": ["career", "home"], "palaces": ["官禄", "仆役", "财帛", "迁移", "田宅", "父母"]},
+    {"q": "老公不着家，婚姻有问题吗", "matter_id": "relationship", "matter_ids": ["relationship"], "palaces": ["夫妻", "福德", "迁移", "交友"]},
+    {"q": "婆婆要带我孩子，我还想拼事业", "matter_id": "career", "matter_ids": ["career", "family"], "palaces": ["官禄", "仆役", "财帛", "迁移", "父母", "子女"]},
+    {"q": "公司要裁员，我准备跳槽", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
+    {"q": "装修房子要不要等明年", "matter_id": "home", "matter_ids": ["home"], "palaces": ["田宅", "财帛", "迁移", "父母"], "focus_factors_include": ["F4_tempo"]},
+    {"q": "异地恋要不要坚持", "matter_id": "relationship", "matter_ids": ["relationship"], "palaces": ["夫妻", "福德", "迁移", "交友"]},
+    {"q": "身体有点顶不住了", "matter_id": "health", "matter_ids": ["health"], "palaces": ["疾厄", "福德", "父母"]},
+    {"q": "睡不着又压力大", "matter_id": "health", "matter_ids": ["health", "mind"], "palaces": ["疾厄", "福德", "父母", "命宫"]},
+    {"q": "想养家但公司要裁员", "matter_id": "career", "matter_ids": ["career", "family"], "palaces": ["官禄", "仆役", "财帛", "迁移", "父母", "子女"]},
+    {"q": "工作稳定重要还是薪资高重要", "matter_id": "career", "matter_ids": ["career", "money"], "palaces": ["官禄", "仆役", "财帛", "迁移", "田宅", "福德"]},
+    {"q": "不想跳槽了，想稳一点", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
     {"q": "", "matter_id": "general", "matter_ids": ["general"], "palaces": ["命宫", "官禄", "夫妻", "财帛"], "matched": false}
   ]
 }
