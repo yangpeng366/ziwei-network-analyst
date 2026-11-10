@@ -52,6 +52,7 @@
     {"q": "想和合伙人一起创业", "matter_id": "career", "matter_ids": ["career", "collaboration"], "palaces": ["官禄", "仆役", "财帛", "迁移", "交友", "夫妻"]},
 
     {"q": "看看我最近怎么样", "matter_id": "general", "matter_ids": ["general"], "palaces": ["命宫", "官禄", "夫妻", "财帛"], "matched": false},
+    {"q": "什么时候比较关键", "matter_id": "general", "matter_ids": ["general"], "palaces": ["命宫", "官禄", "夫妻", "财帛"], "matched": false},
 
     {"q": "要不要裸辞", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"]},
     {"q": "被裁了，接下来怎么办", "matter_id": "career", "matter_ids": ["career"], "palaces": ["官禄", "仆役", "财帛", "迁移"], "focus_factors_include": ["F4_tempo"]},

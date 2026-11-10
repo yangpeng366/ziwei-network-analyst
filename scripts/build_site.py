@@ -16,7 +16,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "packages"))
 from plain_reading.explain import explain_payload  # noqa: E402
-from matter_query.map import MATTER_CATALOG, TIME_KEYWORDS  # noqa: E402
+from matter_query.map import MATTER_CATALOG, TIME_KEYWORDS, FALLBACK_HINT  # noqa: E402
 from matter_query.facts import build_facts, twelve_palaces  # noqa: E402
 from matter_query.prompt_pack import render_facts_text  # noqa: E402
 from timeline.sweep import sweep_payload, chart_for_year  # noqa: E402
@@ -114,6 +114,8 @@ def build_payload() -> dict:
         "generated_by": "scripts/build_site.py",
         "sweep_range": [SWEEP_FROM, SWEEP_TO],
         "time_keywords": list(TIME_KEYWORDS),
+        # 兜底提示文案的唯一来源（catalog.json 的 fallback_hint），前端只做渲染
+        "matter_hint": dict(FALLBACK_HINT),
         "matters": [
             {
                 "id": c["id"],

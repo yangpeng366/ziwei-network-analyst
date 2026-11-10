@@ -63,6 +63,8 @@ button.secondary { background: #fff; color: var(--ink); border-color: var(--line
 .matter { margin: 0 0 12px; padding: 12px; border: 1px solid #d9c9a8; border-radius: 8px; background: #fbf5e8; }
 .matter h2 { color: var(--gold); }
 .matter-label { display: inline-block; font-size: 13px; font-weight:700; color: var(--gold); margin-bottom: 6px; }
+.matter-hint { margin: 4px 0 0; padding: 7px 9px; font-size: 12.5px; line-height: 1.6; color: #7c2630; background: #fbeeef; border: 1px solid #e4c0c4; border-radius: 6px; }
+.matter-hint[hidden] { display: none; }
 .matter ol { margin: 8px 0 0 1.2em; color: var(--muted); }
 .matter li { margin: 4px 0; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }

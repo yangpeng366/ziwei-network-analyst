@@ -29,6 +29,12 @@ jobs:
         run: python scripts/test-skill-entry.py
       - name: 事项映射回归（问法语料 + 前后端一致）
         run: python scripts/test-matter-mapping.py
+      - name: 问法兜底提示回归（general 必须自报「问法没被识别」，CLI 与站点同源）
+        run: python scripts/test-matter-fallback.py
+      # 速查表唯一真源是 catalog.json：scripts/gen-matter-lexicon.py 生成 docs/matter-lexicon.md，
+      # 手改 md 或改了目录忘了重生，这一步都会打红（修法：重跑生成器）
+      - name: 速查表未漂移（docs/matter-lexicon.md 由 catalog 生成，勿手改）
+        run: python scripts/check-matter-lexicon.py
       - name: 端到端：问事 -> 提示包
         run: |
           python scripts/ask.py --demo --matter "今年适合跳槽吗"

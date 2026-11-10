@@ -11,6 +11,9 @@
 - 时间问句（什么时候/哪年/近期…）补入 F4_tempo
 - general 为兜底类：没有任何具体类别命中时才启用，此时 matched=False，
   事实卡展开十二宫交由解读方自行取用
+- 落到 general 时额外给出 suggestions（按 catalog 顺序跳过 general，每类前 4 个关键词）
+  与 hint（提示文案）。文案模板唯一存放于 catalog.json 的 fallback_hint，
+  CLI / 静态站 / 提示包都从这一处取，禁止各自另写字面量
 """
 from __future__ import annotations
 
@@ -24,6 +27,7 @@ _CATALOG: dict[str, Any] = json.loads(_CATALOG_PATH.read_text(encoding="utf-8"))
 MATTER_CATALOG: list[dict[str, Any]] = _CATALOG["categories"]
 TIME_KEYWORDS: list[str] = list(_CATALOG.get("time_keywords") or [])
 GENERAL_ID = "general"
+FALLBACK_HINT: dict[str, Any] = dict(_CATALOG.get("fallback_hint") or {})
 
 MAX_PALACES = 6
 MAX_FACTORS = 5
@@ -31,6 +35,7 @@ MAX_SECONDARY = 2
 MIN_SECONDARY_SCORE = 1.5
 SECONDARY_RATIO = 0.4
 LABEL_SEP = "＋"
+MAX_SUGGESTIONS_PER_CLASS = 4
 
 
 def _kw_weight(k: str) -> float:
@@ -55,9 +60,39 @@ def _general_cat() -> dict[str, Any]:
     return next(c for c in MATTER_CATALOG if c["id"] == GENERAL_ID)
 
 
+def matter_suggestions() -> list[dict[str, Any]]:
+    """兜底时可试的说法：按 catalog 顺序（跳过 general），每类取前 4 个关键词，保持原序。"""
+    out: list[dict[str, Any]] = []
+    for cat in MATTER_CATALOG:
+        if cat.get("fallback"):
+            continue
+        kws = [k for k in (cat.get("keywords") or []) if k][:MAX_SUGGESTIONS_PER_CLASS]
+        if kws:
+            out.append({"matter_id": cat["id"], "label": cat["label"], "keywords": kws})
+    return out
+
+
+def fallback_hint_text(suggestions: list[dict[str, Any]]) -> str:
+    """把 suggestions 渲染成一句提示；模板与分隔符只来自 catalog.json。"""
+    flat = [k for s in suggestions for k in (s.get("keywords") or [])]
+    if not flat:
+        return ""
+    limit = int(FALLBACK_HINT.get("max_examples") or len(flat))
+    shown = flat[:limit]
+    body = str(FALLBACK_HINT.get("separator") or " / ").join(shown)
+    if len(shown) < len(flat):
+        body += str(FALLBACK_HINT.get("ellipsis") or "")
+    template = str(FALLBACK_HINT.get("template") or "{examples}")
+    return template.format(examples=body)
+
+
 def _fallback_focus(query: str) -> dict[str, Any]:
-    """兜底：没有具体事项可归时走整体态势，并标记为未命中（事实卡展开十二宫）。"""
+    """兜底：没有具体事项可归时走整体态势，并标记为未命中（事实卡展开十二宫）。
+
+    同时带上 suggestions 与 hint，让 CLI / 静态站都能直白告诉用户「没识别到问法」。
+    """
     cat = _general_cat()
+    suggestions = matter_suggestions()
     return {
         "query": query,
         "matched": False,
@@ -70,6 +105,8 @@ def _fallback_focus(query: str) -> dict[str, Any]:
         "focus_factors": list(cat["focus_factors"]),
         "lens": cat["lens"],
         "hit_keywords": [],
+        "suggestions": suggestions,
+        "hint": fallback_hint_text(suggestions),
     }
 
 

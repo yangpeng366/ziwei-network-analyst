@@ -129,6 +129,10 @@ def main() -> int:
     print(f"提示包：{out}")
     print(f"结构盘：{json_out}")
     print(f"事项：{payload['matter']['focus']['label']}")
+    # 落到 general 兜底时，直接告诉用户「问法没被识别」并给出可试说法（文案来自 catalog.json）
+    hint = (payload["matter"].get("focus") or {}).get("hint")
+    if hint:
+        print(hint)
     if payload.get("timeline"):
         rng = payload["timeline"].get("range") or []
         print(f"逐年推演：{rng[0]}-{rng[1] if len(rng) > 1 else ''}")

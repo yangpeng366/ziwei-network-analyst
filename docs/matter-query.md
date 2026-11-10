@@ -39,6 +39,28 @@
 一句「要不要辞职去外地发展」同时命中事业职场与外出变动，
 输出为 `事业职场＋外出变动`，宫位取并集，不再只取其一。
 
+### 兜底：问法没被识别（别让用户以为“看全盘”是回答）
+
+一个问题落到 `general`（`matched=False`）时，界面不能默默按普通类别展示。现在三处同源提示：
+
+| 出口 | 位置 | 行为 |
+| --- | --- | --- |
+| Python | `matter_query/map.py` 的 `_fallback_focus` | 附带 `suggestions`（按目录顺序跳过 general、每类前 4 词）与 `hint` |
+| CLI | `scripts/ask.py` | 在 `事项：整体态势` 后单独打一行 `hint`，并写入提示包 `【问法提示】` |
+| 静态站 | `docs/matter.js` + `docs/app.js` | 同算法产出，渲染到 `#matter-hint`（命中具体类别时清空并隐藏） |
+
+文案模板、分隔符、省略号、示例个数全部存在 `catalog.json` 的 `fallback_hint`，
+两边只做渲染 —— 不允许各写一套字面量；`scripts/test-matter-fallback.py` 会拿真实 DOM 文本
+与 CLI 输出逐字比对。
+
+只有时间词（什么时候 / 哪年 / 近期…）而没有类别命中时，同样落 `general`，走同一提示。
+
+### 速查表（generated，勿手改）
+
+`docs/matter-lexicon.md` 由 `scripts/gen-matter-lexicon.py` 从同一份 catalog 生成：
+每类一节（宫位 / 因子 / 镜头 / 关键词全列 / 3 条示例问法），general 单列说明兜底身份。
+CI 用 `scripts/check-matter-lexicon.py` 做逐字防漂移。
+
 ## CLI
 
 ```powershell
@@ -52,12 +74,15 @@ python packages/hypergraph/chart2hypergraph.py fixtures/sample-chart.json --matt
 ## 回归
 
 ```powershell
-python scripts/test-matter-mapping.py   # 问法语料 + 前后端一致性
+python scripts/test-matter-mapping.py   # 问法语料 + 兜底提示字段 + 前后端一致性
+python scripts/test-matter-fallback.py  # 兜底提示：CLI 与站点 DOM 文本逐字一致
+python scripts/check-matter-lexicon.py  # 速查表未漂移（catalog 才是真源）
 python scripts/test-static-page.py      # 静态站元素 id 齐备
 ```
 
 语料在 `fixtures/question-corpus.json`，改规则须同步复核。
-现有 68 条，含口语化（裸辞 / 被裁 / 变心 / 睡不着 / 摆烂 / 靠谱 / 卖房…）与复合型
+现有 69 条，含口语化（裸辞 / 被裁 / 变心 / 睡不着 / 摆烂 / 靠谱 / 卖房…）、时间词单独命中
+（什么时候比较关键 → general 兜底 + 提示）与复合型
 （基金亏损了想换工作 / 为了跳槽去外地 / 一边带娃一边想跳槽 / 睡不着又压力大…）。
 
 ## 护栏

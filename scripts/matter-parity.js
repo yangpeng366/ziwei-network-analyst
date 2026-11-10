@@ -7,10 +7,10 @@ const ROOT = path.resolve(__dirname, "..");
 const read = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8"));
 const catalog = read("packages/matter_query/catalog.json");
 const corpus = read("fixtures/question-corpus.json");
-const matter = require(path.join(ROOT, "docs/matter.js"));
+const matter = require(path.join(ROOT, "docs", "matter.js"));
 
 const out = corpus.cases.map((c) => {
-  const f = matter.resolveMatter(catalog.categories, catalog.time_keywords, c.q);
+  const f = matter.resolveMatter(catalog.categories, catalog.time_keywords, c.q, catalog.fallback_hint);
   return {
     q: c.q,
     matched: f.matched,
@@ -21,6 +21,8 @@ const out = corpus.cases.map((c) => {
     focus_factors: f.focus_factors,
     lens: f.lens,
     hit_keywords: f.hit_keywords,
+    suggestions: f.suggestions,
+    hint: f.hint,
   };
 });
 process.stdout.write(JSON.stringify(out));

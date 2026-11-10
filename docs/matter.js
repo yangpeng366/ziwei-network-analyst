@@ -15,6 +15,7 @@
   var SECONDARY_RATIO = 0.4;
   var LABEL_SEP = "＋";
   var GENERAL_ID = "general";
+  var MAX_SUGGESTIONS_PER_CLASS = 4;
 
   /* 关键词越具体权重越高：1 字 1.0 / 2 字 1.5 / 3 字及以上 2.0 */
   function kwWeight(k) {
@@ -41,8 +42,40 @@
     return matters[matters.length - 1];
   }
 
-  function fallbackFocus(matters, query) {
+  /* 兜底时可试的说法：按目录顺序（跳过 general），每类取前 4 个关键词，原序 */
+  function matterSuggestions(matters) {
+    var out = [];
+    for (var i = 0; i < matters.length; i++) {
+      if (matters[i].fallback) continue;
+      var kws = [];
+      var src = matters[i].keywords || [];
+      for (var j = 0; j < src.length && kws.length < MAX_SUGGESTIONS_PER_CLASS; j++) {
+        if (src[j]) kws.push(src[j]);
+      }
+      if (kws.length) out.push({ matter_id: matters[i].id, label: matters[i].label, keywords: kws });
+    }
+    return out;
+  }
+
+  /* 提示文案：模板/分隔符/省略号全部来自 catalog.json 的 fallback_hint，与 Python 同源 */
+  function fallbackHint(suggestions, hintCfg) {
+    var cfg = hintCfg || {};
+    var flat = [];
+    for (var i = 0; i < suggestions.length; i++) {
+      var kws = suggestions[i].keywords || [];
+      for (var j = 0; j < kws.length; j++) flat.push(kws[j]);
+    }
+    if (!flat.length) return "";
+    var limit = cfg.max_examples || flat.length;
+    var shown = flat.slice(0, limit);
+    var body = shown.join(cfg.separator || " / ");
+    if (shown.length < flat.length) body += (cfg.ellipsis || "");
+    return String(cfg.template || "{examples}").replace("{examples}", body);
+  }
+
+  function fallbackFocus(matters, query, hintCfg) {
     var cat = generalCat(matters);
+    var suggestions = matterSuggestions(matters);
     return {
       query: query,
       matched: false,
@@ -54,17 +87,20 @@
       palaces: (cat.palaces || []).slice(),
       focus_factors: (cat.focus_factors || []).slice(),
       lens: cat.lens,
-      hit_keywords: []
+      hit_keywords: [],
+      suggestions: suggestions,
+      hint: fallbackHint(suggestions, hintCfg)
     };
   }
 
   /* 返回 { query, matched, matter_id, matter_ids, label, labels, secondary_labels,
-             palaces, focus_factors, lens, hit_keywords }（与 Python 侧字段一致） */
-  function resolveMatter(matters, timeKeywords, text) {
+             palaces, focus_factors, lens, hit_keywords,
+             suggestions, hint }（与 Python 侧字段一致；后两项仅兜底时出现） */
+  function resolveMatter(matters, timeKeywords, text, hintCfg) {
     matters = matters || [];
     timeKeywords = timeKeywords || [];
     var q = (text || "").trim();
-    if (!q) return fallbackFocus(matters, q);
+    if (!q) return fallbackFocus(matters, q, hintCfg);
 
     var scored = [];
     for (var i = 0; i < matters.length; i++) {
@@ -72,7 +108,7 @@
       var r = scoreCategory(matters[i], q);
       if (r.score > 0) scored.push({ idx: i, cat: matters[i], score: r.score, hits: r.hits });
     }
-    if (!scored.length) return fallbackFocus(matters, q);
+    if (!scored.length) return fallbackFocus(matters, q, hintCfg);
 
     scored.sort(function (a, b) { return (b.score - a.score) || (a.idx - b.idx); });
     var primary = scored[0];
@@ -132,5 +168,11 @@
     };
   }
 
-  return { resolveMatter: resolveMatter, kwWeight: kwWeight, scoreCategory: scoreCategory };
+  return {
+    resolveMatter: resolveMatter,
+    matterSuggestions: matterSuggestions,
+    fallbackHint: fallbackHint,
+    kwWeight: kwWeight,
+    scoreCategory: scoreCategory
+  };
 });

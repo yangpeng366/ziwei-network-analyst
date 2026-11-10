@@ -1,6 +1,12 @@
 {
   "version": "v2",
   "time_keywords": ["什么时候", "哪年", "年份", "时机", "今年", "明年", "去年", "上半年", "下半年", "近期", "最近", "这两年", "未来几年", "接下来"],
+  "fallback_hint": {
+    "template": "问法没被识别，可试试：{examples}；也可以换个更具体的说法（说清做哪件事、想解决什么）。",
+    "separator": " / ",
+    "ellipsis": "……",
+    "max_examples": 12
+  },
   "categories": [
     {
       "id": "career",

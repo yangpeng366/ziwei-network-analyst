@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 """事项映射回归测试。
 
-三件事：
+四件事：
 1. 目录自检：类别 id 唯一、关键词不跨类别重名、general 存在且为兜底类
 2. 语料回归：fixtures/question-corpus.json 逐条核对归类结果与相关宫位
-3. 前后端一致：同一份语料交给 docs/matter.js（node）跑一遍，结果必须逐字相同
-   —— 静态站与本地引擎共用 catalog.json，一旦算法改一边不同步，这里会立刻报错
+3. 兜底提示：问题落 general 时 suggestions 按 catalog 顺序每类前 4 词、hint 非空；
+   命中具体类别时不得出现 suggestions / hint（否则界面会误报「没识别」）
+4. 前后端一致：同一份语料交给 docs/matter.js（node）跑一遍，结果必须逐字相同
+   —— 含 suggestions / hint；CLI 实际打印的提示行也必须与同一算法一致
 """
 from __future__ import annotations
 
@@ -18,12 +20,30 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "packages"))
-from matter_query.map import MATTER_CATALOG, TIME_KEYWORDS, resolve_matter  # noqa: E402
+from matter_query.map import (  # noqa: E402
+    MATTER_CATALOG,
+    MAX_SUGGESTIONS_PER_CLASS,
+    TIME_KEYWORDS,
+    resolve_matter,
+)
+from matter_query.prompt_pack import build_user_prompt  # noqa: E402
 
 CORPUS = ROOT / "fixtures" / "question-corpus.json"
 PARITY_JS = ROOT / "scripts" / "matter-parity.js"
+ASK_PY = ROOT / "scripts" / "ask.py"
 
-COMPARE_FIELDS = ("matched", "matter_id", "matter_ids", "label", "palaces", "focus_factors", "lens", "hit_keywords")
+COMPARE_FIELDS = (
+    "matched",
+    "matter_id",
+    "matter_ids",
+    "label",
+    "palaces",
+    "focus_factors",
+    "lens",
+    "hit_keywords",
+    "suggestions",
+    "hint",
+)
 
 
 def _force_utf8_stdout() -> None:
@@ -81,6 +101,106 @@ def check_corpus(cases: list[dict]) -> list[str]:
     return errs
 
 
+def _general_case(cases: list[dict]) -> dict | None:
+    """取一条非空问句的 general 样例（空串也算 general，但没法跑 CLI）。"""
+    for case in cases:
+        if case.get("matter_id") == "general" and (case.get("q") or "").strip():
+            return case
+    return None
+
+
+def check_suggestions(cases: list[dict]) -> list[str]:
+    """兜底提示的字段契约：顺序、条数、词源、非兜底时不出现。"""
+    errs: list[str] = []
+    classes = [c for c in MATTER_CATALOG if not c.get("fallback")]
+    order = [c["id"] for c in classes]
+    by_id = {c["id"]: c for c in MATTER_CATALOG}
+
+    general_cases = [c for c in cases if c.get("matter_id") == "general"]
+    if not general_cases:
+        errs.append("语料里缺少 general 兜底样例，无法锁提示行为")
+
+    for case in general_cases:
+        q = case.get("q") or ""
+        tag = q or "(空)"
+        f = resolve_matter(q)
+        sugs = f.get("suggestions")
+        if not sugs:
+            errs.append("{} -> general 缺 suggestions".format(tag))
+            continue
+        got_order = [s.get("matter_id") for s in sugs]
+        if got_order != order:
+            errs.append("{} -> suggestions 顺序/集合 {}，期望 catalog 顺序 {}".format(tag, got_order, order))
+        for item in sugs:
+            mid = item.get("matter_id")
+            cat = by_id.get(mid) or {}
+            kws = [k for k in (cat.get("keywords") or []) if k]
+            expect = kws[:MAX_SUGGESTIONS_PER_CLASS]
+            got = item.get("keywords") or []
+            if got != expect:
+                errs.append("{} -> {} 的 suggestions 词 {!r}，期望该类前 {} 个关键词 {!r}".format(
+                    tag, mid, got, MAX_SUGGESTIONS_PER_CLASS, expect))
+            if len(got) != MAX_SUGGESTIONS_PER_CLASS:
+                errs.append("{} -> {} 的 suggestions 应给满 {} 词，实为 {}".format(
+                    tag, mid, MAX_SUGGESTIONS_PER_CLASS, len(got)))
+            if item.get("label") != cat.get("label"):
+                errs.append("{} -> {} 的 suggestions 标签 {!r} 与目录 {!r} 不一致".format(
+                    tag, mid, item.get("label"), cat.get("label")))
+        hint = f.get("hint") or ""
+        if not hint:
+            errs.append("{} -> general 缺 hint".format(tag))
+            continue
+        for item in sugs[:1]:
+            sample = (item.get("keywords") or [""])[0]
+            if sample and sample not in hint:
+                errs.append("{} -> hint 里没带可试说法（缺 {!r}）".format(tag, sample))
+
+    for case in cases:
+        q = case.get("q") or ""
+        f = resolve_matter(q)
+        if f["matched"] and ("suggestions" in f or "hint" in f):
+            errs.append("{} -> 命中具体类别却仍带 suggestions/hint".format(q))
+    return errs
+
+
+def check_cli_hint(cases: list[dict]) -> list[str]:
+    """CLI 必须把同一句提示单独打一行；提示包里也要带上。"""
+    errs: list[str] = []
+    case = _general_case(cases)
+    if not case:
+        return ["语料里没有非空 general 样例，无法核对 CLI 提示"]
+    q = case["q"]
+    hint = resolve_matter(q).get("hint") or ""
+    if not hint:
+        return ["{} -> general 缺 hint，CLI 无从打印".format(q)]
+
+    proc = subprocess.run(
+        [sys.executable, str(ASK_PY), "--demo", "--matter", q],
+        cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8",
+    )
+    if proc.returncode != 0:
+        return ["ask.py 跑不通：{}".format((proc.stderr or proc.stdout or "")[-400:])]
+    lines = [l.strip() for l in proc.stdout.splitlines() if l.strip()]
+    hits = [l for l in lines if l == hint]
+    if not hits:
+        errs.append("CLI 未按整行打印兜底提示：期望一行 {!r}".format(hint))
+    elif len(hits) > 1:
+        errs.append("CLI 兜底提示重复打印 {} 次".format(len(hits)))
+
+    matched = next((c for c in cases if c.get("matter_id") not in (None, "general")), None)
+    mq = (matched or {}).get("q") or ""
+    if mq:
+        payload = {"matter": {"focus": resolve_matter(mq)}}
+        text = build_user_prompt(payload, mq)
+        if "【问法提示】" in text:
+            errs.append("命中具体类别时提示包不应出现「问法提示」：{}".format(mq))
+    payload = {"matter": {"focus": resolve_matter(q)}}
+    text = build_user_prompt(payload, q)
+    if "【问法提示】" not in text or hint not in text:
+        errs.append("兜底时提示包未写入问法提示：{}".format(q))
+    return errs
+
+
 def check_parity(cases: list[dict]) -> list[str]:
     errs: list[str] = []
     node = shutil.which("node")
@@ -121,6 +241,8 @@ def main() -> int:
 
     errs = check_catalog()
     errs += check_corpus(cases)
+    errs += check_suggestions(cases)
+    errs += check_cli_hint(cases)
     errs += check_parity(cases)
 
     if errs:

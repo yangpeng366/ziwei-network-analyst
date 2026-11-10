@@ -123,9 +123,13 @@ def build_user_prompt(payload: dict[str, Any], matter_text: str | None = None, t
 
     if matter_text or matter:
         q = matter_text or ((matter.get("focus") or {}).get("query") or "")
-        label = (matter.get("focus") or {}).get("label") or "整体态势"
+        focus = matter.get("focus") or {}
+        label = focus.get("label") or "整体态势"
         lines.append(f"【用户想问的事】{q or '（未指定，按整体态势）'}")
         lines.append(f"【事项归类】{label}")
+        # 兜底时把「问法没被识别」直接写进提示包，粘给任意 AI 也带引导（文案来自 catalog.json）
+        if focus.get("hint"):
+            lines.append(f"【问法提示】{focus['hint']}")
         if matter.get("plain"):
             lines.append(f"【事项聚焦草稿】{matter['plain']}")
         lines.append("")

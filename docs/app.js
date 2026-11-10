@@ -17,7 +17,7 @@
 
   /* ---------- 事项映射（与 Python 侧同口径；算法在 docs/matter.js，两端共用 catalog） ---------- */
   function resolveMatter(q) {
-    return ZiweiMatter.resolveMatter(D.matters, D.time_keywords, q);
+    return ZiweiMatter.resolveMatter(D.matters, D.time_keywords, q, D.matter_hint);
   }
 
   function rowFor(c, year) {
@@ -110,6 +110,7 @@
     L.push("");
     L.push("【用户想问的事】" + (focus.query || "（未指定，按整体态势）"));
     L.push("【事项归类】" + focus.label);
+    if (focus.hint) L.push("【问法提示】" + focus.hint);
     L.push("【事项聚焦草稿】" + plainText);
     L.push("");
     L.push("【四因子一句话】");
@@ -201,6 +202,11 @@
     $("plain-next").innerHTML = (c.current.plain.how_to_look_next || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("");
 
     $("matter-label").textContent = "「" + focus.label + "」" + (y !== c.current.year ? "（按 " + y + " 年看）" : "");
+    /* 落到 general 兜底：明确指出「问法没被识别」并给出可试说法（文案由 catalog.json 的 fallback_hint 供给） */
+    var hintEl = $("matter-hint");
+    hintEl.textContent = focus.hint || "";
+    if (focus.hint) hintEl.removeAttribute("hidden");
+    else hintEl.setAttribute("hidden", "hidden");
     $("matter-plain").textContent = plainText;
     $("matter-palaces").textContent = "相关宫位：" + focus.palaces.join("、")
       + (focus.hit_keywords.length ? "（命中：" + focus.hit_keywords.join("、") + "）" : "");
