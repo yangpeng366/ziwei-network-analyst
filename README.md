@@ -47,6 +47,8 @@ python scripts/sweep.py --birth 1990-01-01-0-male --from 2020 --to 2035 --svg ou
 
 问题命中不了关键词时，不再逐宫铺开十二张详卡，只给十二宫一览 + 一行宫义速查，交给 LLM 自行取用——省下的上下文留给真正要读的部分。
 
+完整的「问法 → 宫位」速查见 [docs/matter-lexicon.md](docs/matter-lexicon.md)：由 `catalog.json` 生成，CI 逐字比对，手改即红。
+
 ## 四个因子
 
 | 因子 | 白话 | 问自己 |
