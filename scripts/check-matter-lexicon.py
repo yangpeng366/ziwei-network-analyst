@@ -37,6 +37,16 @@ def _load_generator() -> ModuleType:
     return mod
 
 
+def _normalize_newlines(data: bytes) -> bytes:
+    """把 CRLF / 孤立 CR 归一为 LF。
+
+    Windows 上的 git checkout 默认把仓库里的 LF 转成 CRLF（core.autocrlf），
+    这是工作区行为而非内容漂移；CI 的 windows-latest 也这样检出。
+    生成器固定输出 LF，所以比对前只归一换行符，其余字节仍逐字比。
+    """
+    return data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+
+
 def main() -> int:
     _force_utf8_stdout()
     if not GEN.exists():
@@ -49,9 +59,11 @@ def main() -> int:
     expected = _load_generator().render()
     expected_bytes = expected.encode("utf-8")
     actual_bytes = OUT.read_bytes()
-    if expected_bytes == actual_bytes:
-        print("MATTER LEXICON OK：docs/matter-lexicon.md 与 catalog 生成结果逐字一致（{} 行 / {} 字节）".format(
-            expected.count("\n"), len(expected_bytes)
+    actual_normalized = _normalize_newlines(actual_bytes)
+    if expected_bytes == actual_normalized:
+        eol_note = "；已忽略 CRLF/LF 差异" if actual_bytes != expected_bytes else ""
+        print("MATTER LEXICON OK：docs/matter-lexicon.md 与 catalog 生成结果逐字一致（{} 行 / {} 字节）{}".format(
+            expected.count("\n"), len(expected_bytes), eol_note
         ))
         return 0
 
