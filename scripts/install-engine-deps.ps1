@@ -1,5 +1,7 @@
 $ErrorActionPreference = "Stop"
-Set-Location "F:\github\ziwei-doushu"
+. (Join-Path $PSScriptRoot 'lib\repo-paths.ps1')
+Assert-EngineRoot
+Set-Location "$EngineRoot"
 Write-Host "npm install iztro lunar-javascript tsx"
 npm install iztro@2.5.8 lunar-javascript@1.7.3 tsx@4.19.0 --no-save --no-package-lock
 if ($LASTEXITCODE -ne 0) { throw "npm failed" }

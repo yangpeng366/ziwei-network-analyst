@@ -23,7 +23,7 @@ from timeline.sweep import sweep_payload  # noqa: E402
 from timeline.curve_svg import curve_svg  # noqa: E402
 
 CONV = ROOT / "packages" / "hypergraph" / "chart2hypergraph.py"
-ENGINE = Path(os.environ.get("ZIWEI_ENGINE_ROOT", r"F:\github\ziwei-doushu"))
+ENGINE = Path(os.environ.get("ZIWEI_ENGINE_ROOT") or (ROOT.parent / "ziwei-doushu"))
 GEN = ENGINE / "scripts" / "gen-one-for-ui.ts"
 FIXTURES = ROOT / "fixtures"
 HOST = "127.0.0.1"

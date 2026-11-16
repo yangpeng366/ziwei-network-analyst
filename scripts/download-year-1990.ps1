@@ -1,5 +1,6 @@
 $ErrorActionPreference = "Stop"
-$outDir = "F:\github\ziwei-network-analyst\data\v4-sample"
+. (Join-Path $PSScriptRoot 'lib\repo-paths.ps1')
+$outDir = "$RepoRoot\data\v4-sample"
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 $zst = Join-Path $outDir "year-1990.jsonl.zst"
 $url = "https://github.com/Renhuai123/ziwei-doushu/releases/download/v4.0-13d/year-1990.jsonl.zst"

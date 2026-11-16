@@ -21,7 +21,9 @@ python scripts/test-f1-regression.py
 
 ## 提交前自检
 
-- [ ] 没有硬编码 `F:\` 之外的机器路径（引擎路径请走 `ZIWEI_ENGINE_ROOT`）
+- [ ] 没有硬编码机器路径：仓库内路径由脚本自身位置派生，引擎路径请走 `ZIWEI_ENGINE_ROOT`
+- [ ] PowerShell 脚本先 `. (Join-Path $PSScriptRoot 'lib\repo-paths.ps1')` 取 `$RepoRoot` / `$EngineRoot`，不写盘符
+- [ ] `.ps1` 只写 ASCII（Windows PowerShell 5.1 把无 BOM 文件按 ANSI 解码，中文会解析失败；要写中文请落到 `.md`）
 - [ ] 新增文件 UTF-8 无 BOM
 - [ ] 演示页仍能出白话与提示包
 - [ ] README 的用法与实际命令一致
@@ -32,6 +34,7 @@ python scripts/test-f1-regression.py
 - `packages/plain_reading/explain.py`：白话生成
 - `packages/matter_query/map.py`：事项→宫位
 - `packages/matter_query/prompt_pack.py`：可粘贴提示包
+- `scripts/lib/repo-paths.ps1`：仓根 / 引擎根的单一派生点（`$RepoRoot`、`$EngineRoot`、`Assert-EngineRoot`）
 - `web/server.py`：本地演示页
 
 ## 提交信息

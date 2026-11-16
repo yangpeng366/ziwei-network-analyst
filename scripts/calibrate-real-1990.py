@@ -7,7 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(r"F:\github\ziwei-network-analyst")
+ROOT = Path(__file__).resolve().parents[1]
 REAL = ROOT / "fixtures" / "real-1990"
 CORPUS = ROOT / "data" / "v4-sample" / "year-1990.jsonl"
 CONV = ROOT / "packages" / "hypergraph" / "chart2hypergraph.py"

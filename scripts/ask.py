@@ -25,7 +25,7 @@ from matter_query.facts import facts_for  # noqa: E402
 from matter_query.prompt_pack import build_system_prompt, build_user_prompt  # noqa: E402
 
 CONV = ROOT / "packages" / "hypergraph" / "chart2hypergraph.py"
-ENGINE = Path(os.environ.get("ZIWEI_ENGINE_ROOT", r"F:\github\ziwei-doushu"))
+ENGINE = Path(os.environ.get("ZIWEI_ENGINE_ROOT") or (ROOT.parent / "ziwei-doushu"))
 GEN = ENGINE / "scripts" / "gen-one-for-ui.ts"
 
 

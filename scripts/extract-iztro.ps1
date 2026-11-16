@@ -1,4 +1,6 @@
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot 'lib\repo-paths.ps1')
+Assert-EngineRoot
 function Expand-NpmTgz($tgz, $dest) {
   $tmp = "$dest-extract-tmp"
   Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
@@ -9,8 +11,8 @@ function Expand-NpmTgz($tgz, $dest) {
   Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
   Write-Output ("ok " + $dest + " utils=" + (Test-Path (Join-Path $dest "lib\utils\index.js")))
 }
-Expand-NpmTgz "F:\github\ziwei-network-analyst\work\iztro-2.5.8.tgz" "F:\github\ziwei-doushu\node_modules\iztro"
+Expand-NpmTgz "$RepoRoot\work\iztro-2.5.8.tgz" "$EngineRoot\node_modules\iztro"
 # deps often needed
-npm pack lunar-lite --registry https://registry.npmmirror.com --pack-destination "F:\github\ziwei-network-analyst\work" | Out-Host
-$lite = Get-ChildItem "F:\github\ziwei-network-analyst\work\lunar-lite-*.tgz" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if ($lite) { Expand-NpmTgz $lite.FullName "F:\github\ziwei-doushu\node_modules\lunar-lite" }
+npm pack lunar-lite --registry https://registry.npmmirror.com --pack-destination "$RepoRoot\work" | Out-Host
+$lite = Get-ChildItem "$RepoRoot\work\lunar-lite-*.tgz" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+if ($lite) { Expand-NpmTgz $lite.FullName "$EngineRoot\node_modules\lunar-lite" }

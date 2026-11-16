@@ -1,7 +1,9 @@
 $ErrorActionPreference = "Stop"
-$dest = "F:\github\ziwei-doushu\node_modules\lunar-typescript"
-$tgz = "F:\github\ziwei-network-analyst\work\lunar-typescript-1.8.6.tgz"
-$tmp = "F:\github\ziwei-network-analyst\work\lunar-typescript-extract"
+. (Join-Path $PSScriptRoot 'lib\repo-paths.ps1')
+Assert-EngineRoot
+$dest = "$EngineRoot\node_modules\lunar-typescript"
+$tgz = "$RepoRoot\work\lunar-typescript-1.8.6.tgz"
+$tmp = "$RepoRoot\work\lunar-typescript-extract"
 Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 tar -xf $tgz -C $tmp

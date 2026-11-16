@@ -1,6 +1,6 @@
 import json, subprocess, sys
 from pathlib import Path
-ROOT = Path(r"F:\github\ziwei-network-analyst")
+ROOT = Path(__file__).resolve().parents[1]
 CONV = ROOT / "packages" / "hypergraph" / "chart2hypergraph.py"
 REAL = ROOT / "fixtures" / "real-1990"
 charts = sorted([p for p in REAL.glob("1990-*.json") if "hypergraph" not in p.name])
