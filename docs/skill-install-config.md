@@ -9,11 +9,11 @@
 
 | 项 | 值 | 说明 |
 |---|---|---|
-| 源目录 | `F:\github\ziwei-network-analyst\skill\ziwei-network-analyst` | 仓内唯一真源，改这里 |
+| 源目录 | `D:\gitAll\ziwei-network-analyst\skill\ziwei-network-analyst` | 仓内唯一真源，改这里（旧路径 `F:\github\...` 已废弃） |
 | 安装目标 | `%USERPROFILE%\.codex-home\skills\ziwei-network-analyst` | Codex 实际加载处 |
 | 安装方式 | `pwsh -File scripts/install-skill.ps1` | 复制后逐文件 SHA-256 校验 |
 | 自定义目标 | `pwsh -File scripts/install-skill.ps1 -Dest <路径>` | 目录名必须是 `ziwei-network-analyst` |
-| 上游排盘引擎 | `F:\github\ziwei-doushu`（可用 `ZIWEI_ENGINE_ROOT` 覆盖） | 只有要真排盘时才需要；fixture 演示不需要 |
+| 上游排盘引擎 | `ZIWEI_ENGINE_ROOT` 指向的目录（历史默认 `F:\github\ziwei-doushu`；2026-11-16 实测本机已不存在，需重装） | 只有要真排盘时才需要；fixture 演示不需要 |
 | 本地服务 | `python scripts/win/start-demo.cmd` → `http://127.0.0.1:8765` | 可选，静态站直接开 `docs/index.html` 亦可 |
 
 ## 默认值

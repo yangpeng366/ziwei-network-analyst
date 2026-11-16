@@ -15,14 +15,39 @@
 | `ziwei-rules` | 本仓库 docs + 证据卡 + 上游格局/四化摘要 |
 | `ziwei-samples` | v4.0 按年抽样（如每年 100 盘）或结构模板库 |
 
-示例：
+起节点（auth 默认开；admin key 由 xerj 自行到 data dir 读，不必手抄到环境变量）：
 
 ```powershell
 $env:PATH = "$env:LOCALAPPDATA\Programs\xerj;$env:PATH"
-$env:XERJ_API_KEY = (Get-Content -Path 'D:\AI-Portable\xerj-data\admin.key' -Raw).Trim()
-xerj autoindex F:\github\ziwei-network-analyst\docs --prefix ziwei-rules
-xerj search --prefix ziwei-rules "四化 忌 三方四正 韧性"
+xerj --data-dir D:\AI-Portable\xerj-data --port 9200   # 用完即停
 ```
+
+索引本仓库文档（一个 prefix 只绑一个源目录）：
+
+```powershell
+xerj autoindex D:\gitAll\ziwei-network-analyst\docs --prefix ziwei-rules
+```
+
+若报 `--prefix ziwei-rules already indexes a different folder`（历史 `F:\github\...` 路径残留），
+换源目录必须显式接力，否则不会写入：
+
+```powershell
+xerj autoindex D:\gitAll\ziwei-network-analyst\docs --prefix ziwei-rules --replace-prefix
+```
+
+检索：
+
+```powershell
+xerj search --prefix ziwei-rules "忌 = 关键失效算子"
+```
+
+**实测（2026-11-16）**：`--replace-prefix` 重建后 23 files / 122 records / 2 datasets
+（`ziwei-rules-docs`、`ziwei-rules-examples`）；重建前只有 7 files / 9 records，源目录还指向已不存在的
+`F:\github\ziwei-network-analyst\docs`。关键句可命中：`忌 = 关键失效算子` → `core-factors.md`，
+`唯一数据源 catalog.json version v2` → `matter-lexicon.md:4`。
+
+**查询写法**：写一句原文连续片段最好命中；把多个中文词用空格拼成 OR 时弱命中会混进
+`app.js` / `index.html`（score `1.00`）。看到 `1.00` 就换成原文整句重查，别当成语料缺失。
 
 ## v4.0 语料怎么用（1990 年样例已落地）
 

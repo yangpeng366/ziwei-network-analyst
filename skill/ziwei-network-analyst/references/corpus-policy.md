@@ -22,8 +22,8 @@
 ## 回归
 
 ```powershell
-python F:\github\ziwei-network-analyst\scripts\test-f1-regression.py
-python F:\github\ziwei-network-analyst\scripts\inspect-real-distribution.py
+python D:\gitAll\ziwei-network-analyst\scripts\test-f1-regression.py
+python D:\gitAll\ziwei-network-analyst\scripts\inspect-real-distribution.py
 ```
 
 合成盘期望：`community-high > sample > community-low`。

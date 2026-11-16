@@ -66,5 +66,6 @@ python <repo>/scripts/sweep.py --chart <chart.json> --from 2020 --to 2035 --svg 
 
 ## 仓库位置
 
-默认 `F:\github\ziwei-network-analyst`；若不存在，先找环境变量 `ZIWEI_REPO`，
-或 `C:\Users\<you>\.codex-home\skills\ziwei-network-analyst` 的上级即本仓副本。
+按序找：环境变量 `ZIWEI_REPO` → 本机 `D:\gitAll\ziwei-network-analyst` → 已装副本
+`C:\Users\<you>\.codex-home\skills\ziwei-network-analyst`（其上级目录即本仓副本）。
+仓根以实际存在的那个为准；旧默认 `F:\github\ziwei-network-analyst` 已废弃。

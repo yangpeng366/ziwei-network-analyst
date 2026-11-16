@@ -71,10 +71,11 @@ cd ziwei-network-analyst
 要排自己的盘，再装引擎（可选）：
 
 ```powershell
-git clone https://github.com/Renhuai123/ziwei-doushu.git F:\github\ziwei-doushu
-cd F:\github\ziwei-doushu; npm install
-$env:ZIWEI_ENGINE_ROOT = "F:\github\ziwei-doushu"
+git clone https://github.com/Renhuai123/ziwei-doushu.git D:\gitAll\ziwei-doushu
+cd D:\gitAll\ziwei-doushu; npm install
+$env:ZIWEI_ENGINE_ROOT = "D:\gitAll\ziwei-doushu"
 ```
+（路径仅示例，换成本机任意目录，用 `ZIWEI_ENGINE_ROOT` 指过去即可。）
 没有引擎也能用：`--demo` 或网页的「现成盘」。
 
 ## 目录
