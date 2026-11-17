@@ -21,6 +21,10 @@ python scripts/test-f1-regression.py
 
 ## 提交前自检
 
+```powershell
+python scripts/check-no-abs-paths.py   # 禁盘符硬编码 + 每个 .ps1 均 dot-source repo-paths.ps1
+```
+
 - [ ] 没有硬编码机器路径：仓库内路径由脚本自身位置派生，引擎路径请走 `ZIWEI_ENGINE_ROOT`
 - [ ] PowerShell 脚本先 `. (Join-Path $PSScriptRoot 'lib\repo-paths.ps1')` 取 `$RepoRoot` / `$EngineRoot`，不写盘符
 - [ ] `.ps1` 只写 ASCII（Windows PowerShell 5.1 把无 BOM 文件按 ANSI 解码，中文会解析失败；要写中文请落到 `.md`）

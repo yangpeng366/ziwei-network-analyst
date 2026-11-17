@@ -21,6 +21,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      # 脚本路径纪律：代码里禁盘符硬编码；每个 .ps1 必须 dot-source scripts/lib/repo-paths.ps1
+      # （唯一派生点：$RepoRoot / $EngineRoot。换机器/换盘符后再也不用手改脚本）
+      - name: 脚本无绝对路径（禁盘符硬编码 + ps1 统一 dot-source repo-paths.ps1）
+        run: python scripts/check-no-abs-paths.py
       - name: F1 回归（高协作 > 样本 > 低协作）
         run: python scripts/test-f1-regression.py
       - name: fixture 转换可复现（两次一致 + 与基准件一致）
