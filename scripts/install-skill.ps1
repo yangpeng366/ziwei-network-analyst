@@ -7,16 +7,21 @@
 #
 # 用法：
 #   pwsh -File scripts/install-skill.ps1
-#   pwsh -File scripts/install-skill.ps1 -Dest D:\somewhere\ziwei-network-analyst
-$ErrorActionPreference = 'Stop'
+#   pwsh -File scripts/install-skill.ps1 -Dest "$HOME\somewhere\ziwei-network-analyst"
+param(
+    [string]$Dest = ''
+)
 
-$src = Join-Path (Split-Path -Parent $PSScriptRoot) 'skill\ziwei-network-analyst'
+$ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib\repo-paths.ps1')
+
+$src = Join-Path $RepoRoot 'skill\ziwei-network-analyst'
 if (-not (Test-Path -LiteralPath $src)) {
     throw "仓内 skill 不存在：$src"
 }
 
-$dest = if ($args.Count -ge 1 -and $args[0]) {
-    $args[0]
+$dest = if ($Dest) {
+    $Dest
 } else {
     Join-Path $env:USERPROFILE '.codex-home\skills\ziwei-network-analyst'
 }

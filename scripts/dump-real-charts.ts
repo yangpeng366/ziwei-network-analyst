@@ -1,11 +1,16 @@
 /**
  * Dump real charts from v4 birth keys via upstream generateChart.
- * Run from ziwei-doushu root:
- *   npx tsx F:/github/ziwei-network-analyst/scripts/dump-real-charts.ts
+ * Run from the ziwei-doushu engine root (paths below are derived from this file's
+ * location, so the repo can live on any drive):
+ *   npx tsx <repo>/scripts/dump-real-charts.ts
  */
 import { createReadStream, writeFileSync, mkdirSync } from 'node:fs';
 import { createInterface } from 'node:readline';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { generateChart } from '../lib/ziwei/algorithm.ts';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 type Row = {
   k: string;
@@ -19,8 +24,8 @@ type Row = {
   c: Record<string, string>;
 };
 
-const CORPUS = 'F:/github/ziwei-network-analyst/data/v4-sample/year-1990.jsonl';
-const OUT_DIR = 'F:/github/ziwei-network-analyst/fixtures/real-1990';
+const CORPUS = join(REPO_ROOT, 'data', 'v4-sample', 'year-1990.jsonl');
+const OUT_DIR = join(REPO_ROOT, 'fixtures', 'real-1990');
 const SAMPLE_N = 36;
 
 function softCommunityScore(c: Record<string, string>): { score: number; hits: string[] } {

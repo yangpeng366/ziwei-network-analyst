@@ -8,7 +8,8 @@ if "%Q%"=="" (
   set "Q=整体态势"
 )
 set "ENGINE=%ZIWEI_ENGINE_ROOT%"
-if "%ENGINE%"=="" set "ENGINE=F:\github\ziwei-doushu"
+rem default engine = sibling dir of this repo, derived from script location (no drive letters)
+if "%ENGINE%"=="" for %%I in ("%~dp0..\..\..") do set "ENGINE=%%~fI\ziwei-doushu"
 if not exist "%ENGINE%\lib\ziwei\algorithm.ts" (
   echo [提示] 未找到排盘引擎：%ENGINE%
   echo        仅用演示盘生成提示包；自排盘请设置 ZIWEI_ENGINE_ROOT。
