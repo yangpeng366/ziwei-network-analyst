@@ -31,8 +31,14 @@ Get-CimInstance Win32_Process -Filter "Name='xerj.exe'" |
 ```
 
 输出里的 `--data-dir/-d` 才是当前节点实际服务的目录，**以它为准**，不要照抄别处的路径。
-2026-11-18 复核：在跑的 9200 节点命令行是 `-d "E:\AI-Portable\xerj-data"`，
-而本文此前写的是 `D:\AI-Portable\xerj-data`；两处 `autoindex-catalog\snapshot.json`
+
+2026-11-18 复核，在跑的 9200 节点命令行（原文摘录，块内是实测字面量）：
+
+```powershell
+xerj --insecure --port 9200 -d "E:\AI-Portable\xerj-data" -c "E:\AI-Portable\xerj-data\xerj.toml" --disable-feedback
+```
+
+本文早期版本把 data dir 写成 D 盘同名目录；两处 `autoindex-catalog/snapshot.json`
 指纹完全一致（同 segment id / generation 31 / max_seq_no 158），所以检索结果不受影响，
 但「换机后照文档抄路径」会踩空——先读命令行再决定。
 
@@ -46,7 +52,7 @@ Get-CimInstance Win32_Process -Filter "Name='xerj.exe'" |
 xerj autoindex D:\gitAll\ziwei-network-analyst\docs --prefix ziwei-rules
 ```
 
-若报 `--prefix ziwei-rules already indexes a different folder`（历史 `F:\github\...` 路径残留），
+若报 `--prefix ziwei-rules already indexes a different folder`（历史 F 盘 `github` 目录残留下来的旧记录），
 换源目录必须显式接力，否则不会写入：
 
 ```powershell
@@ -61,10 +67,10 @@ xerj search --prefix ziwei-rules "忌 = 关键失效算子"
 
 **实测（2026-11-16）**：`--replace-prefix` 重建后 23 files / 122 records / 2 datasets
 （`ziwei-rules-docs`、`ziwei-rules-examples`）；重建前只有 7 files / 9 records，源目录还指向已不存在的
-`F:\github\ziwei-network-analyst\docs`。关键句可命中：`忌 = 关键失效算子` → `core-factors.md`，
+旧 F 盘 `github\ziwei-network-analyst\docs`（已不存在）。关键句可命中：`忌 = 关键失效算子` → `core-factors.md`，
 `唯一数据源 catalog.json version v2` → `matter-lexicon.md:4`。
 
-**复核（2026-11-18，仓库迁到 `D:\gitAll` 之后）**：节点在跑即可直接验，不必重建。
+**复核（2026-11-18，仓库从旧盘迁到当前仓根之后）**：节点在跑即可直接验，不必重建。
 
 | 查询 | 命中 | score |
 |---|---|---|
@@ -75,8 +81,8 @@ xerj search --prefix ziwei-rules "忌 = 关键失效算子"
 `retrieval-zvec-xerj.md:60`，第二条才是 `matter-lexicon.md:4`；看到本文件排前面不是故障，
 往下读一条即可。
 
-当前索引属于 `run-20261116T112652Z-af58-0000`（`xerj autoindex map` 可查）：root
-`\\?\D:\gitAll\ziwei-network-analyst\docs`，23 paths / 121 records（2026-11-18 增量重跑后；此前 122）。
+当前索引属于 `run-20261116T112652Z-af58-0000`（`xerj autoindex map` 可查）：root 就是仓内 `docs`
+（xerj 会以 `\\?\` 前缀的绝对路径原样打印），23 paths / 121 records（2026-11-18 增量重跑后；此前 122）。
 **索引是快照，不是活视图**：仓库里改了 docs 就要重跑 autoindex，否则检索到的是旧句子
 （判据：搜本轮新写入的句子 → `no match`，同时老句子仍命中）。而 `check-matter-lexicon.py` /
 `check-site-drift.py` 抓不到这种漂移——它们只比对仓内文件，不比对 xerj 索引。
