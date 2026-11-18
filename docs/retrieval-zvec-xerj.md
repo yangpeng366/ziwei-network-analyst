@@ -19,8 +19,26 @@
 
 ```powershell
 $env:PATH = "$env:LOCALAPPDATA\Programs\xerj;$env:PATH"
-xerj --data-dir D:\AI-Portable\xerj-data --port 9200   # 用完即停
+xerj --data-dir <data 目录> --port 9200   # 用完即停
 ```
+
+**起之前先确认有没有在跑**（同一台机上第二个节点绑不上 9200，会白等一轮）：
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='xerj.exe'" |
+  Where-Object { $_.CommandLine -match '--port' } |
+  Select-Object ProcessId, CommandLine
+```
+
+输出里的 `--data-dir/-d` 才是当前节点实际服务的目录，**以它为准**，不要照抄别处的路径。
+2026-11-18 复核：在跑的 9200 节点命令行是 `-d "E:\AI-Portable\xerj-data"`，
+而本文此前写的是 `D:\AI-Portable\xerj-data`；两处 `autoindex-catalog\snapshot.json`
+指纹完全一致（同 segment id / generation 31 / max_seq_no 158），所以检索结果不受影响，
+但「换机后照文档抄路径」会踩空——先读命令行再决定。
+
+- 已在跑：直接检索，不要重复 autoindex（重复索引只会堆段）。
+- 要换源目录：`--replace-prefix` 重建，别指望增量拼接。
+- 没在跑：按上面命令起一个，用完即停，别留后台常驻进程。
 
 索引本仓库文档（一个 prefix 只绑一个源目录）：
 
@@ -45,6 +63,23 @@ xerj search --prefix ziwei-rules "忌 = 关键失效算子"
 （`ziwei-rules-docs`、`ziwei-rules-examples`）；重建前只有 7 files / 9 records，源目录还指向已不存在的
 `F:\github\ziwei-network-analyst\docs`。关键句可命中：`忌 = 关键失效算子` → `core-factors.md`，
 `唯一数据源 catalog.json version v2` → `matter-lexicon.md:4`。
+
+**复核（2026-11-18，仓库迁到 `D:\gitAll` 之后）**：节点在跑即可直接验，不必重建。
+
+| 查询 | 命中 | score |
+|---|---|---|
+| `忌 = 关键失效算子` | `core-factors.md:1`（F3 行原文） | 2002.00 |
+| `唯一数据源 catalog.json version v2` | `matter-lexicon.md:4` | 2001.00 |
+
+重跑索引后本文自己也会被命中（自指命中）：`唯一数据源…` 的首条变成
+`retrieval-zvec-xerj.md:60`，第二条才是 `matter-lexicon.md:4`；看到本文件排前面不是故障，
+往下读一条即可。
+
+当前索引属于 `run-20261116T112652Z-af58-0000`（`xerj autoindex map` 可查）：root
+`\\?\D:\gitAll\ziwei-network-analyst\docs`，23 paths / 121 records（2026-11-18 增量重跑后；此前 122）。
+**索引是快照，不是活视图**：仓库里改了 docs 就要重跑 autoindex，否则检索到的是旧句子
+（判据：搜本轮新写入的句子 → `no match`，同时老句子仍命中）。而 `check-matter-lexicon.py` /
+`check-site-drift.py` 抓不到这种漂移——它们只比对仓内文件，不比对 xerj 索引。
 
 **查询写法**：写一句原文连续片段最好命中；把多个中文词用空格拼成 OR 时弱命中会混进
 `app.js` / `index.html`（score `1.00`）。看到 `1.00` 就换成原文整句重查，别当成语料缺失。
