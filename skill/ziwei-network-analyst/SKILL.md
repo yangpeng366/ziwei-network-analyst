@@ -66,6 +66,10 @@ python <repo>/scripts/sweep.py --chart <chart.json> --from 2020 --to 2035 --svg 
 
 ## 仓库位置
 
-按序找：环境变量 `ZIWEI_REPO` → 本机 `D:\gitAll\ziwei-network-analyst` → 已装副本
-`C:\Users\<you>\.codex-home\skills\ziwei-network-analyst`（其上级目录即本仓副本）。
-仓根以实际存在的那个为准；旧默认 `F:\github\ziwei-network-analyst` 已废弃。
+按序找：
+
+1. 环境变量 `ZIWEI_REPO` 指的仓根
+2. 本机工作副本：从当前目录向上找，含 `scripts/lib/repo-paths.ps1` 的那一层即仓根
+3. 已装 skill 副本：`%USERPROFILE%\.codex-home\skills\ziwei-network-analyst`（仓内源在 `skill/ziwei-network-analyst/`）
+
+盘符与用户名随机器变化，正文一律不写死；仓根以实际存在的那个为准。

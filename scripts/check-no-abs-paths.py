@@ -11,7 +11,7 @@
      在该行加注释标记   no-abs-path: allow <原因>   —— 白名单只按行，不按文件。
   2. 每个 .ps1 必须 dot-source repo-paths.ps1；例外只有 repo-paths.ps1 自身，
      或显式声明   no-repo-paths: allow <原因>   （.cmd/.bat 无法 dot-source，不适用）。
-  3. 文档（docs/**/*.md）正文里不得出现绝对路径：机器路径只许出现在围栏代码块里
+  3. 文档（docs/**、skill/**、仓根 *.md）正文里不得出现绝对路径：机器路径只许出现在围栏代码块里
      （``` / ~~~ 包住的「可跑示例」）。正文用仓内相对路径、%USERPROFILE%、<(占位符)>，
      或在该行加 HTML 注释 <!-- no-abs-path: allow <原因> --> 白名单（渲染不可见）。
 
@@ -26,13 +26,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# 只扫代码，不扫文档：docs/ 与 skill/ 里的机器路径是「怎么用」的示例，允许保留
+# 代码扫描范围：文档目录里的代码同样要守规则
 CODE_SUFFIXES = {".ps1", ".psm1", ".cmd", ".bat", ".py", ".js", ".mjs", ".cjs", ".ts", ".sh"}
 SKIP_DIRS = {".git", "node_modules", "__pycache__", "out", "work", ".venv", "venv", "dist", "build"}
 
-# 文档范围：先管 docs/。扩到 skill/ 与仓根 README 前，先把那边的正文绝对路径改成相对写法，
-# 否则本检查会直接打红（这也是本轮不动它们的原因）。
-DOC_DIRS = ("docs",)
+# 文档范围：docs/ 与 skill/ 递归全扫，仓根只扫顶层 *.md（不递归，否则等于全网扫一遍）。
+# 围栏代码块内的机器路径是「可跑示例」，放行；正文只许相对路径 / %USERPROFILE% / 占位符。
+DOC_DIRS = ("docs", "skill")
 DOC_SUFFIXES = {".md"}
 
 REPO_PATHS_REL = "scripts/lib/repo-paths.ps1"
@@ -74,6 +74,7 @@ def _code_files() -> list[Path]:
 
 def _doc_files() -> list[Path]:
     out: list[Path] = []
+    seen: set[Path] = set()
     for name in DOC_DIRS:
         base = ROOT / name
         if not base.is_dir():
@@ -83,6 +84,13 @@ def _doc_files() -> list[Path]:
                 continue
             if any(part in SKIP_DIRS for part in p.relative_to(ROOT).parts[:-1]):
                 continue
+            if p not in seen:
+                seen.add(p)
+                out.append(p)
+    # 仓根 *.md：只顶层，不跟 DOC_DIRS 递归
+    for p in sorted(ROOT.glob("*.md")):
+        if p.is_file() and p not in seen:
+            seen.add(p)
             out.append(p)
     return out
 

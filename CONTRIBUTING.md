@@ -22,7 +22,7 @@ python scripts/test-f1-regression.py
 ## 提交前自检
 
 ```powershell
-python scripts/check-no-abs-paths.py   # 禁盘符硬编码 + 每个 .ps1 均 dot-source repo-paths.ps1
+python scripts/check-no-abs-paths.py   # 禁盘符硬编码 + 每个 .ps1 均 dot-source repo-paths.ps1 + 文档正文（docs/、skill/、仓根 *.md）禁绝对路径
 ```
 
 - [ ] 没有硬编码机器路径：仓库内路径由脚本自身位置派生，引擎路径请走 `ZIWEI_ENGINE_ROOT`
