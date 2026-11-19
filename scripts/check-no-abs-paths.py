@@ -16,7 +16,8 @@
      或在该行加 HTML 注释 <!-- no-abs-path: allow <原因> --> 白名单（渲染不可见）。
 
 用法：
-  python scripts/check-no-abs-paths.py   # 通过 -> 退出 0；违规 -> 列出并退出 1
+  python scripts/check-no-abs-paths.py             # 通过 -> 退出 0；违规 -> 列出并退出 1
+  python scripts/check-no-abs-paths.py --selftest  # 规则自测：负例必须打红、放行口必须放行
 """
 from __future__ import annotations
 
@@ -138,12 +139,90 @@ def check_dot_source(path: Path, text: str) -> list[tuple[int, str, str]]:
     return [(1, "未 dot-source {}".format(REPO_PATHS_REL), "缺 . (Join-Path $PSScriptRoot 'lib\\repo-paths.ps1')")]
 
 
-def main() -> int:
+def _drive(letter: str = "C", sep: str = "\\") -> str:
+    """拼出「盘符 + 冒号 + 分隔符」。自测文本必须这样拼，
+    否则本文件自己就会被规则 1 打红（自测脚本不能是违规样本）。"""
+    return letter + ":" + sep
+
+
+def _selftest() -> int:
+    """负例自测：规则真的会打红？放行口真的放行？白名单真的只按行？
+
+    只测纯函数（check_doc_prose / check_drive_letters / check_dot_source），不落盘。
+    规则被改成「永远 OK」时这里会先红，比等真实文件漏进来更早。
+    """
+    d = _drive("C", "\\")   # 反斜杠盘符
+    f = _drive("D", "/")    # 正斜杠盘符
+    doc_path = Path("selftest.md")
+
+    doc_cases: list[tuple[str, str, int]] = [
+        ("正文裸盘符 -> 打红", "见 {}repo\\a.md\n".format(d), 1),
+        ("正文正斜杠盘符 -> 打红", "见 {}repo/a.md\n".format(f), 1),
+        ("围栏代码块内盘符 -> 放行", "```text\n{}repo\\a.md\n```\n".format(d), 0),
+        ("波浪线围栏内盘符 -> 放行", "~~~\n{}repo\\a.md\n~~~\n".format(d), 0),
+        ("三空格缩进围栏 -> 放行", "   ```\n{}repo\\a.md\n   ```\n".format(d), 0),
+        ("行内白名单 -> 放行", "见 {}repo\\a.md <!-- no-abs-path: allow 示例 -->\n".format(d), 0),
+        ("白名单只按行，不传染下一行",
+         "见 {}a.md <!-- no-abs-path: allow 示例 -->\n见 {}b.md\n".format(d, d), 1),
+        ("围栏闭合后正文继续受检",
+         "```\n{}a.md\n```\n{}b.md\n".format(d, d), 1),
+        ("URL 双斜杠不误判", "见 https://example.com/a 与 http://x/y\n", 0),
+    ]
+
+    code_cases: list[tuple[str, str, int]] = [
+        ("代码裸盘符 -> 打红", "$p = '{}repo\\a.ps1'\n".format(d), 1),
+        ("代码行内白名单 -> 放行",
+         "$p = '{}repo\\a.ps1'  # no-abs-path: allow 示例\n".format(d), 0),
+        ("代码上一行白名单不传染 -> 打红",
+         "# no-abs-path: allow 示例\n$p = '{}repo\\a.ps1'\n".format(d), 1),
+        ("代码 URL 不误判", "$u = 'https://example.com/x'\n", 0),
+    ]
+
+    ps1_cases: list[tuple[str, str, int]] = [
+        ("ps1 缺 dot-source -> 打红", "Get-Date\n", 1),
+        ("ps1 有 dot-source -> 放行",
+         ". (Join-Path $PSScriptRoot 'lib\\repo-paths.ps1')\n", 0),
+        ("ps1 白名单 -> 放行", "# no-repo-paths: allow 片段\nGet-Date\n", 0),
+    ]
+
+    failures: list[str] = []
+    total = 0
+
+    def expect(name: str, got: int, want: int) -> None:
+        nonlocal total
+        total += 1
+        if got != want:
+            failures.append("{}：期望 {} 处违规，实际 {} 处".format(name, want, got))
+
+    for name, text, want in doc_cases:
+        expect(name, len(check_doc_prose(doc_path, text)), want)
+    for name, text, want in code_cases:
+        expect(name, len(check_drive_letters(Path("selftest.py"), text)), want)
+    for name, text, want in ps1_cases:
+        expect(name, len(check_dot_source(Path("selftest.ps1"), text)), want)
+
+    if failures:
+        print("NO-ABS-PATHS SELFTEST FAIL：{}/{} 条不符".format(len(failures), total))
+        for item in failures:
+            print("  - {}".format(item))
+        return 1
+    print("NO-ABS-PATHS SELFTEST OK：{} 条（负例打红 / 围栏放行 / 白名单放行 / URL 不误判）".format(total))
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
     for stream in (sys.stdout, sys.stderr):
         try:
             stream.reconfigure(encoding="utf-8", errors="replace")
         except Exception:
             pass
+
+    if args:
+        if args[0] in ("--selftest", "selftest"):
+            return _selftest()
+        print("未知参数：{}（用法：python scripts/check-no-abs-paths.py [--selftest]）".format(" ".join(args)))
+        return 2
 
     if not (ROOT / REPO_PATHS_SELF).exists():
         print("缺少唯一派生点：{}（先补它再让脚本依赖）".format(REPO_PATHS_REL))

@@ -25,6 +25,10 @@ jobs:
       # （唯一派生点：$RepoRoot / $EngineRoot。换机器/换盘符后再也不用手改脚本）
       - name: 脚本无绝对路径（禁盘符硬编码 + ps1 统一 dot-source repo-paths.ps1）
         run: python scripts/check-no-abs-paths.py
+      # 负例自测：规则必须真会打红（正文/代码裸盘符）、放行口必须真放行（围栏/白名单），
+      # 且白名单只按行、URL 双斜杠不误判。规则哪天被改成「永远 OK」，这步先红。
+      - name: 路径纪律自测（负例打红 + 围栏/白名单放行）
+        run: python scripts/check-no-abs-paths.py --selftest
       - name: F1 回归（高协作 > 样本 > 低协作）
         run: python scripts/test-f1-regression.py
       - name: fixture 转换可复现（两次一致 + 与基准件一致）
