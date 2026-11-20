@@ -43,6 +43,10 @@ jobs:
       # 手改 md 或改了目录忘了重生，这一步都会打红（修法：重跑生成器）
       - name: 速查表未漂移（docs/matter-lexicon.md 由 catalog 生成，勿手改）
         run: python scripts/check-matter-lexicon.py
+      # 负例自测：改词 / 多行 / 少行 / 末尾空行 / BOM 必须打红并点名行号，CRLF 检出只许归一。
+      # 规则哪天被改成「永远 OK」或「永远 FAIL」，这两步先红。
+      - name: 速查表防漂移自测（负例打红且点行号 + CRLF 放行）
+        run: python scripts/check-matter-lexicon.py --selftest
       - name: 端到端：问事 -> 提示包
         run: |
           python scripts/ask.py --demo --matter "今年适合跳槽吗"
@@ -53,6 +57,10 @@ jobs:
         run: python scripts/build_site.py
       - name: 静态站数据未漂移
         run: python scripts/check-site-drift.py
+      # 负例自测：图表集合 / 顺序 / 字段 / 顶层字段 / charts.js 格式异常都必须打红，
+      # 而 BOM、无分号、多余空白这类无害格式变体必须放行（否则规则会变成只会喊狼来了）。
+      - name: 静态站漂移自测（集合/顺序/字段/顶层/格式负例打红）
+        run: python scripts/check-site-drift.py --selftest
       - name: 白话与提示包冒烟
         run: python scripts/smoke.py
       - name: 提示词瘦身回归（星曜不重复 + 宽泛提问不铺满）

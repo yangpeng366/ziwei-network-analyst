@@ -24,9 +24,13 @@ python scripts/test-f1-regression.py
 ```powershell
 python scripts/check-no-abs-paths.py            # 禁盘符硬编码 + 每个 .ps1 均 dot-source repo-paths.ps1 + 文档正文（docs/、skill/、仓根 *.md）禁绝对路径
 python scripts/check-no-abs-paths.py --selftest # 规则自身的负例自测（负例打红 / 围栏放行 / 白名单放行 / URL 不误判）
+python scripts/check-matter-lexicon.py            # 速查表与 catalog 生成结果逐字一致（改词/多行/少行会打红并点名行号）
+python scripts/check-matter-lexicon.py --selftest # 负例自测（CRLF 只归一、BOM/改词/多行/末尾空行必红）
+python scripts/check-site-drift.py                # 静态站数据与生成结果一致（集合/顺序/字段/顶层字段）
+python scripts/check-site-drift.py --selftest     # 负例自测（格式异常必红，BOM/无分号/空白变体放行）
 ```
 
-改了 `scripts/check-no-abs-paths.py` 的规则（正则 / 放行口 / 扫描范围）必须跑 `--selftest`，CI 也会跑。
+改了任一 `check-*.py` 的规则（正则 / 放行口 / 扫描范围 / 比对口径）必须跑对应 `--selftest`，CI 也会跑。
 只在真实文件上「看着没报错」不算验证——规则被改成永远 OK 也是没报错。
 
 - [ ] 没有硬编码机器路径：仓库内路径由脚本自身位置派生，引擎路径请走 `ZIWEI_ENGINE_ROOT`

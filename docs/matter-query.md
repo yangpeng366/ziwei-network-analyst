@@ -59,7 +59,7 @@
 
 `docs/matter-lexicon.md` 由 `scripts/gen-matter-lexicon.py` 从同一份 catalog 生成：
 每类一节（宫位 / 因子 / 镜头 / 关键词全列 / 3 条示例问法），general 单列说明兜底身份。
-CI 用 `scripts/check-matter-lexicon.py` 做逐字防漂移。
+CI 用 `scripts/check-matter-lexicon.py` 做逐字防漂移（`--selftest` 自证规则不是「永远放行」）。
 
 ## CLI
 
@@ -77,6 +77,7 @@ python packages/hypergraph/chart2hypergraph.py fixtures/sample-chart.json --matt
 python scripts/test-matter-mapping.py   # 问法语料 + 兜底提示字段 + 前后端一致性
 python scripts/test-matter-fallback.py  # 兜底提示：CLI 与站点 DOM 文本逐字一致
 python scripts/check-matter-lexicon.py  # 速查表未漂移（catalog 才是真源）
+python scripts/check-matter-lexicon.py --selftest  # 防漂移规则自测：CRLF 放行、改词/多行/BOM 必红并点名行号
 python scripts/test-static-page.py      # 静态站元素 id 齐备
 ```
 
