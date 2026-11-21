@@ -4,7 +4,10 @@
 
 用法：
   python scripts/check-site-drift.py             # 一致 → OK / 退出 0；不一致 → 退出 1 并点名首个差异
-  python scripts/check-site-drift.py --selftest  # 规则自测：集合/顺序/字段/顶层/格式负例必须打红
+  python scripts/check-site-drift.py --selftest  # 规则自测：集合/顺序/字段/顶层/缺盘/格式负例必须打红
+
+缺盘纪律：必需 fixture 缺失 → 直接打红（不再等 build_payload 静默 skip 后比出一个「一致」）；
+本地私有盘缺失 → 显式 WARN：它必须出现在产物 missing_charts 里，少盘才会被 diff 看见。
 """
 from __future__ import annotations
 
@@ -14,7 +17,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from build_site import OUT, build_payload  # noqa: E402
+from build_site import (  # noqa: E402
+    OUT,
+    MissingFixtureError,
+    build_payload,
+    collect_missing,
+    format_missing,
+    rel_path,
+)
 
 PREFIX = "window.ZIWEI_DATA = "
 
@@ -96,7 +106,10 @@ def _selftest() -> int:
         return {"id": cid, "label": label, "daXian": [{"startAge": 3}]}
 
     base = {"generated_by": "scripts/build_site.py", "matters": [{"id": "m"}],
+            "missing_charts": [],
             "charts": [ch("sample"), ch("real-a")]}
+    lost = {"id": "real-a", "path": "fixtures/real-1990/1990-01-01-0-male.json",
+            "required": False, "note": "真实生盘"}
 
     diff_cases: list[tuple[str, dict, dict, str | None]] = [
         ("完全相同 -> 放行", base, json.loads(json.dumps(base)), None),
@@ -116,6 +129,13 @@ def _selftest() -> int:
          {**base, "sweep_range": [2015, 2050]}, "顶层字段 sweep_range"),
         ("图表不是对象 -> 打红", {"charts": [ch("sample")]},
          {"charts": ["sample"]}, "chart 数据不是对象"),
+        # 缺盘留痕：少一张盘 + missing_charts 跟着变，必须打红（先点集合，再点顶层）
+        ("缺盘且 missing_charts 变化 -> 打红", base,
+         {**base, "charts": [ch("sample")], "missing_charts": [lost]},
+         "图表集合不一致（多 real-a）"),
+        ("盘没少但 missing_charts 变了 -> 打红", base,
+         {**base, "missing_charts": [lost]}, "顶层字段 missing_charts"),
+        ("missing_charts 同为空 -> 放行", base, json.loads(json.dumps(base)), None),
     ]
 
     parse_cases: list[tuple[str, str, bool]] = [
@@ -143,6 +163,22 @@ def _selftest() -> int:
         except Exception as exc:  # 规则崩了也算失败（例如把 dict 丢进 set）
             got = "崩溃：{}: {}".format(type(exc).__name__, exc)
         expect(name, got, want)
+
+    # 缺盘肥则：必需缺 -> 必红且点名；本地私有缺 -> 必进缺盘清单（不能被静默 skip 掉）
+    missing_required, missing_local = collect_missing()
+    expect("必需 fixture 缺失时点名可读",
+           all(rel_path(s.path).startswith("fixtures/") for s in missing_required), True)
+    expect("缺盘分类不重叠",
+           sorted({s.id for s in missing_required} & {s.id for s in missing_local}), [])
+    try:
+        build_payload(strict=True, log=False)
+        got_strict: object = "未抛错"
+    except MissingFixtureError as exc:
+        got_strict = sorted(s.id for s in exc.specs) == sorted(s.id for s in missing_required)
+    expect("strict 构建与缺盘清单一致", got_strict, True if missing_required else "未抛错")
+    expect("缺盘清单必须含在产物里（本地私有盘不静默）",
+           all(s.id in {m["id"] for m in build_payload(strict=False, log=False)["missing_charts"]}
+               for s in [*missing_required, *missing_local]), True)
 
     for name, raw, ok in parse_cases:
         try:
@@ -173,14 +209,30 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if not OUT.exists():
-        print("缺少", OUT)
+        print("缺少", rel_path(OUT))
         return 1
+
+    # 先查缺盘：必需缺盘时连「一致」都谈不上（以前是 build_payload 静默 skip，然后比出一个假 OK）
+    missing_required, missing_local = collect_missing()
+    if missing_required:
+        print("SITE DATA FAIL：缺少必需 fixture，无法生成完整站点数据")
+        print(format_missing(missing_required))
+        print("  修法：补齐 fixture 后重跑 python scripts/build_site.py（勿手改 charts.js）")
+        return 1
+    for spec in missing_local:
+        print("WARN 缺本地私有 fixture：{}（{}）—— 站点少这张盘，已记入 missing_charts".format(
+            spec.id, rel_path(spec.path)), file=sys.stderr)
+
     try:
         committed = parse_payload_text(OUT.read_text(encoding="utf-8"))
     except (ValueError, UnicodeDecodeError) as exc:
         print("SITE DATA FAIL：{}".format(exc))
         return 1
-    fresh = build_payload()
+    try:
+        fresh = build_payload()
+    except MissingFixtureError as exc:
+        print("SITE DATA FAIL：{}".format(exc))
+        return 1
     diff = describe_diff(committed, fresh)
     if diff is None:
         print("SITE DATA OK")

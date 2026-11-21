@@ -26,9 +26,13 @@ python scripts/check-no-abs-paths.py            # 禁盘符硬编码 + 每个 .p
 python scripts/check-no-abs-paths.py --selftest # 规则自身的负例自测（负例打红 / 围栏放行 / 白名单放行 / URL 不误判）
 python scripts/check-matter-lexicon.py            # 速查表与 catalog 生成结果逐字一致（改词/多行/少行会打红并点名行号）
 python scripts/check-matter-lexicon.py --selftest # 负例自测（CRLF 只归一、BOM/改词/多行/末尾空行必红）
-python scripts/check-site-drift.py                # 静态站数据与生成结果一致（集合/顺序/字段/顶层字段）
+python scripts/check-site-drift.py                # 静态站数据与生成结果一致（集合/顺序/字段/顶层字段/缺盘留痕）
 python scripts/check-site-drift.py --selftest     # 负例自测（格式异常必红，BOM/无分号/空白变体放行）
+python scripts/build_site.py --selftest           # 缺盘纪律自测（缺仓内必需盘必红，缺本地私有盘必入 missing_charts）
 ```
+
+缺 fixture 不再静默 skip：仓内必需盘缺了构建直接打红且不写 `charts.js`；本地私有盘（`fixtures/real-1990/`，
+不入仓）缺了会显式 WARN 并记进产物顶层 `missing_charts`，让少盘可 diff。细则见 `docs/site-data.md`。
 
 改了任一 `check-*.py` 的规则（正则 / 放行口 / 扫描范围 / 比对口径）必须跑对应 `--selftest`，CI 也会跑。
 只在真实文件上「看着没报错」不算验证——规则被改成永远 OK 也是没报错。
